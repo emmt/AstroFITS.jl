@@ -111,22 +111,6 @@ dat2["SPEED"] == speed
 should hold.
 
 
-## Installation
-
-The easiest way to install `AstroFITS` is via Julia registry
-[`EmmtRegistry`](https://github.com/emmt/EmmtRegistry):
-
-```julia
-using Pkg
-pkg"registry add General"
-pkg"registry add https://github.com/emmt/EmmtRegistry"
-pkg"add AstroFITS"
-```
-
-Adding the `General` registry (2nd line of the above example) is mandatory to have access to
-the official Julia packages if you never have used the package manager before.
-
-
 ## Related projects
 
 The [FITSIO](https://github.com/JuliaAstro/FITSIO.jl) package is another alternative to
