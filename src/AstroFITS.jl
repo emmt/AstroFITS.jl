@@ -1,4 +1,4 @@
-module EasyFITS
+module AstroFITS
 
 export
     # Re-export from FITSHeaders:

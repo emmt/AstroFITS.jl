@@ -52,9 +52,9 @@ read:
   indicate whether letter case does matter in the column names.
 
 !!! note
-    In `EasyFITS`, the *rows* of a table correspond to the last dimension of arrays. This is
-    to have the same storage order in memory and in the FITS file. Method `permutedims` can
-    be used is this convention does not suit you.
+    In `AstroFITS`, the *rows* of a table correspond to the last dimension of arrays. This
+    is to have the same storage order in memory and in the FITS file. Method `permutedims`
+    can be used is this convention does not suit you.
 
 The type of the object returned by [`readfits`](@ref) depends on the kind of the FITS
 extension and may also depend on the optional arguments `args...`:

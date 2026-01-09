@@ -2,8 +2,8 @@ using Documenter
 
 push!(LOAD_PATH, normpath(joinpath(@__DIR__, "..", "src")))
 
-using EasyFITS
-import EasyFITS:
+using AstroFITS
+import AstroFITS:
     Rows, Columns, ColumnIdent, ColumnName, ColumnData,
     TableData, ImageData, Header, SubArrayIndex
 using FITSHeaders
@@ -32,6 +32,6 @@ makedocs(
 
 if DEPLOYDOCS
     deploydocs(
-        repo = "github.com/emmt/EasyFITS.jl.git",
+        repo = "github.com/emmt/AstroFITS.jl.git",
     )
 end

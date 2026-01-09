@@ -1,11 +1,10 @@
 using Requires
 
 """
-    EasyFITS.CFITSIO_VERSION
+    AstroFITS.CFITSIO_VERSION
 
-VErsion number of the CFITSIO library for which `EasyFITS` has been built. When
-`EasyFITS` is loaded, it is checked that the version of the CFITSIO library does match this
-version.
+Version number of the CFITSIO library for which `AstroFITS` has been built. When `AstroFITS`
+is loaded, it is checked that the version of the CFITSIO library does match this version.
 
 """
 const CFITSIO_VERSION = VersionNumber(CFITSIO.CFITSIO_MAJOR,

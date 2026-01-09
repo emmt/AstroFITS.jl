@@ -1,4 +1,7 @@
-# Things to do in EasyFITS
+# Things to do in AstroFITS
+
+- For a FITS Table HDU, `read(hdu,units=String)` yields a dictionary whose values are named
+  tuples with keys `:data` and `:units`.
 
 - Document how to:
   - Copy a HDU from a file to another.
@@ -20,7 +23,7 @@
 - Reading a table as a vector of columns is not tested. Methods to push a table
   column in a vector are ambiguous and should probably be removed.
 
-- Make `EasyFITS` understand the rules of CFITSIO for reading multi-dimensional
+- Make `AstroFITS` understand the rules of CFITSIO for reading multi-dimensional
   cells of strings. Not for writing though.
 
 - Deal with long strings (`CONTINUE` FITS keyword).

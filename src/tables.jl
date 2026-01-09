@@ -83,7 +83,7 @@ last_row_to_read(hdu::FitsTableHDU, rows::Rows) = as(Int, last(rows))
 last_row_to_read(hdu::FitsTableHDU, rows::Colon) = hdu.last_row
 
 """
-    EasyFITS.get_units(hdu, col; case=false) -> str
+    AstroFITS.get_units(hdu, col; case=false) -> str
     hdu.column_units(col; case=false) -> str
 
 Return the units for the column `col` of FITS Table `hdu`. Keyword `case` specifies whether
@@ -98,7 +98,7 @@ function get_units(hdu::FitsTableHDU, col::ColumnIdent; case::Bool = false)
 end
 
 """
-    EasyFITS.get_colnum(hdu::FitsTableHDU, col; case=false) -> num
+    AstroFITS.get_colnum(hdu::FitsTableHDU, col; case=false) -> num
     hdu.column_number(col; case=false) -> num
 
 Return the column number of column matching `col` (a string, a symbol, or an integer) in
@@ -122,7 +122,7 @@ Base.checkbounds(hdu::FitsTableHDU, col::Integer) =
     col ∈ hdu.columns || bad_argument("out of range column index")
 
 """
-    EasyFITS.get_colname(hdu::FitsTableHDU, col; case=false) -> (str, num)
+    AstroFITS.get_colname(hdu::FitsTableHDU, col; case=false) -> (str, num)
     hdu.column_name(col; case=false) -> str
 
 Return the column name and number of column matching `col` (a string, a symbol, or an
@@ -311,8 +311,8 @@ output_eltype(::Type{<:AbstractArray{T}}) where {T} = T
 output_eltype(::Type{<:AbstractArray}) = nothing
 
 """
-    EasyFITS.eltypes_to_read(T::Type, S::Type) -> T, R
-    EasyFITS.eltypes_to_read(nothing, S::Type) -> T, R
+    AstroFITS.eltypes_to_read(T::Type, S::Type) -> T, R
+    AstroFITS.eltypes_to_read(nothing, S::Type) -> T, R
 
 Return the type `R` of the elements to read for a column with elements of type `S` when
 caller has requested values of type `T` on output. If first argument is `nothing`, `T = S`

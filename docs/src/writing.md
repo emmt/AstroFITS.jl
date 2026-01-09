@@ -20,11 +20,11 @@ HDU, and so on. Here `kwds...` represent keywords that are passed to [`FitsFile`
 call `writefits!(args...; kwds...)` is a shortcut for `writefits(args...; overwrite = true,
 kwds...)` which overwrites `filename` if it already exists.
 
-In `EasyFITS`, there are many different possible ways to specify a HDU header and data:
+In `AstroFITS`, there are many different possible ways to specify a HDU header and data:
 
 * A header may be `nothing` if there are no additional keywords other than the *structural
   keywords* describing the data part. Otherwise, the possible types for a header are given
-  by the union [`EasyFITS.Header`](@ref): a header may be a collection of `FitsCard`
+  by the union [`AstroFITS.Header`](@ref): a header may be a collection of `FitsCard`
   instances (i.e. an instance of `FitsHeader`, a tuple, or a vector of FITS cards), a named
   tuple, a tuple or a vector of pairs like `key => val` or `key => (val, com)` with `key`
   the keyword name, `val` its value, and `com` a comment.
@@ -43,7 +43,7 @@ file can be made obvious by the code as in the following complex example with ar
 saved in the primary HDU and two tables in the next HDUs:
 
 ```julia
-using Dates, EasyFITS
+using Dates, AstroFITS
 filename = "/tmp/test.fits";
 arr = rand(Float32, (3,4,5));
 nrows = 20;
@@ -61,7 +61,7 @@ writefits(filename,
           #
           # Header part as a vector of `key=>val` or `key=>(val,com)` pairs:
           ["DATE"    => (now(), "date of creation"),
-           "HISTORY" => "This file has been produced by EasyFITS",
+           "HISTORY" => "This file has been produced by AstroFITS",
            "USER"    => ENV["USER"]],
           # Data part as an array:
           arr,

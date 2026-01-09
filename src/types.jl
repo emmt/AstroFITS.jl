@@ -17,9 +17,9 @@ struct OutputCstring{T<:DenseVector{UInt8}}
 end
 
 """
-    EasyFITS.Header
+    AstroFITS.Header
 
-Union of acceptable type(s) to specify a FITS header in `EasyFITS` package.
+Union of acceptable type(s) to specify a FITS header in `AstroFITS` package.
 
 A header may be a vector of pairs like `key => val`, `key => (val,com)`, or `key => com`
 with `key` the keyword name, `val` its value, and `com` its comment. The keyword name `key`
@@ -72,15 +72,15 @@ const Header = Union{
     NamedTuple, Tuple{Vararg{CardPair}}, AbstractVector{<:CardPair}}
 
 """
-    EasyFITS.OptionalHeader
+    AstroFITS.OptionalHeader
 
-Union of `Nothing` and of acceptable type(s) to specify a FITS header in `EasyFITS` package.
+Union of `Nothing` and of acceptable type(s) to specify a FITS header in `AstroFITS` package.
 
 """
 const OptionalHeader = Union{Nothing,Header}
 
 """
-    EasyFITS.ImageData{T,N}
+    AstroFITS.ImageData{T,N}
 
 Alias of the acceptable type(s) for the data of a `N`-dimensional FITS Image extension with
 elements of type `T`.
@@ -89,7 +89,7 @@ elements of type `T`.
 const ImageData{T<:Number,N} = AbstractArray{T,N}
 
 """
-    EasyFITS.ColumnName
+    AstroFITS.ColumnName
 
 Union of acceptable types for the name of a column in a FITS Table extension.
 
@@ -97,7 +97,7 @@ Union of acceptable types for the name of a column in a FITS Table extension.
 const ColumnName = Union{AbstractString,Symbol}
 
 """
-    EasyFITS.ColumnIdent
+    AstroFITS.ColumnIdent
 
 Union of acceptable types for identifying a single column in a FITS Table extension.
 
@@ -105,13 +105,13 @@ Union of acceptable types for identifying a single column in a FITS Table extens
 const ColumnIdent = Union{ColumnName,Integer}
 
 """
-    EasyFITS.Columns
+    AstroFITS.Columns
 
 Union of acceptable types to specify several columns in a FITS Table extension.
 
 The method:
 
-    EasyFITS.columns_to_read(hdu::FitsTableHDU, cols::Columns)
+    AstroFITS.columns_to_read(hdu::FitsTableHDU, cols::Columns)
 
 yields an iterable object over the column indices to read in table.
 
@@ -124,15 +124,15 @@ const Columns = Union{Colon,
                       Tuple{Vararg{ColumnName}}}
 
 """
-    EasyFITS.Rows
+    AstroFITS.Rows
 
 Union of possible types to specify one or several rows in a FITS Table extension.
 
 The following methods are provided:
 
-    EasyFITS.rows_to_read(hdu::FitsTableHDU, rows::Rows)
-    EasyFITS.first_row_to_read(hdu::FitsTableHDU, rows::Rows)
-    EasyFITS.last_row_to_read(hdu::FitsTableHDU, rows::Rows)
+    AstroFITS.rows_to_read(hdu::FitsTableHDU, rows::Rows)
+    AstroFITS.first_row_to_read(hdu::FitsTableHDU, rows::Rows)
+    AstroFITS.last_row_to_read(hdu::FitsTableHDU, rows::Rows)
 
 to yield a iterable object over the row indices to read in table and the first/last such row
 indices.
@@ -141,7 +141,7 @@ indices.
 const Rows = Union{Colon,Integer,AbstractUnitRange{<:Integer}}
 
 """
-    EasyFITS.ColumnData{T,N}
+    AstroFITS.ColumnData{T,N}
 
 Alias for the possible type(s) of the cells of a `N`-dimensional column with values of type
 `T` in a FITS Table extension.
@@ -150,7 +150,7 @@ Alias for the possible type(s) of the cells of a `N`-dimensional column with val
 const ColumnData{T,N} = AbstractArray{T,N}
 
 """
-    EasyFITS.ColumnUnits
+    AstroFITS.ColumnUnits
 
 Alias for the possible type(s) for the units of a column in a FITS Table extension.
 
@@ -158,7 +158,7 @@ Alias for the possible type(s) for the units of a column in a FITS Table extensi
 const ColumnUnits = AbstractString
 
 """
-    EasyFITS.ColumnEltype
+    AstroFITS.ColumnEltype
 
 Alias for the possible type(s) to specify the types of the values in a column of a FITS
 Table extension.
@@ -167,7 +167,7 @@ Table extension.
 const ColumnEltype = Union{Type,Char}
 
 """
-    EasyFITS.ColumnDims
+    AstroFITS.ColumnDims
 
 Alias for the possible type(s) to specify the cell dimensions in a column of a FITS Table
 extension.
@@ -176,7 +176,7 @@ extension.
 const ColumnDims = Union{Integer,Tuple{Vararg{Integer}}}
 
 """
-    EasyFITS.ColumnSpec
+    AstroFITS.ColumnSpec
 
 Alias for the possible type(s) to specify the type of values, cell dimensions, and units of
 a column of a FITS Table extension. The element type is mandatory and must be specified
@@ -191,7 +191,7 @@ const ColumnSpec = Union{ColumnEltype,
                          Tuple{ColumnEltype,ColumnUnits,ColumnDims}}
 
 """
-    EasyFITS.ColumnNameSpecPair
+    AstroFITS.ColumnNameSpecPair
 
 Alias for possible type(s) to specify a column when creating a table. Instances of this kind
 are pairs like `col => type` or `col => (type,dims,units)` with `col` the column name
@@ -203,14 +203,14 @@ units of the values. `dims` and `units` are optional and may appear in any order
 const ColumnNameSpecPair = Pair{<:ColumnName,<:ColumnSpec}
 
 """
-    EasyFITS.ColumnIdentDataPair
+    AstroFITS.ColumnIdentDataPair
 
 Alias for possible type(s) to specify a column with its data and, optionally, its units to
 be written in a FITS Table extension. Instances of this kind are pairs like `col => vals` or
 `col => (vals, units)` with `col` the column name or number, `vals` the column values, and
 `units` optional units.
 
-[`EasyFITS.ColumnNameDataPair`](@ref) is similar except that `col` cannot be a column
+[`AstroFITS.ColumnNameDataPair`](@ref) is similar except that `col` cannot be a column
 number.
 
 """
@@ -218,21 +218,21 @@ const ColumnIdentDataPair = Pair{<:ColumnIdent,
                                  <:Union{ColumnData,Tuple{ColumnData,ColumnUnits}}}
 
 """
-    EasyFITS.ColumnNameDataPair
+    AstroFITS.ColumnNameDataPair
 
 Alias for possible type(s) to specify a column with its data and, optionally, its units to
 be written in a FITS Table extension. Instances of this kind are pairs like `col => vals` or
 `col => (vals, units)` with `col` the column name, `vals` the column values, and `units`
 optional units.
 
-[`EasyFITS.ColumnIdentDataPair`](@ref) is similar except that `col` can be a column number.
+[`AstroFITS.ColumnIdentDataPair`](@ref) is similar except that `col` can be a column number.
 
 """
 const ColumnNameDataPair = Pair{<:ColumnName,
                                 <:Union{ColumnData,Tuple{ColumnData,ColumnUnits}}}
 
 """
-    EasyFITS.TableData
+    AstroFITS.TableData
 
 Union of types that can possibly be that of FITS Table data. Instances of this kind are
 collections of `key => vals` or `key => (vals, units)` pairs with `key` the column name,
@@ -243,12 +243,12 @@ For table data specified by dictionaries or vectors, the names of the columns mu
 of the same type.
 
 Owing to the variety of possibilities for representing column values with optional units,
-`EasyFITS.TableData` cannot be specific for the values of the pairs in the collection. The
+`AstroFITS.TableData` cannot be specific for the values of the pairs in the collection. The
 package therefore rely on *error catcher* methods to detect column with invalid associated
 data.
 
-Another consequence is that there is a non-empty intersection between `EasyFITS.TableData`
-and `EasyFITS.Header` which imposes to rely on position of arguments to distinguish them.
+Another consequence is that there is a non-empty intersection between `AstroFITS.TableData`
+and `AstroFITS.Header` which imposes to rely on position of arguments to distinguish them.
 
 """
 const TableData = Union{AbstractDict{<:ColumnName,<:Any},
@@ -287,7 +287,7 @@ mutable struct FitsFile <: AbstractVector{FitsHDU}
 end
 
 """
-    EasyFITS.Invalid
+    AstroFITS.Invalid
 
 Singleton type of the object used to indicate invalid arguments while sparing throwing an
 exception.

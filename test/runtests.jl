@@ -1,9 +1,9 @@
-module TestingEasyFITS
+module TestingAstroFITS
 
-using Test, EasyFITS, Dates, DataFrames
+using Test, AstroFITS, Dates, DataFrames
 
-using EasyFITS: FitsInteger, FitsFloat, FitsComplex
-using EasyFITS: CFITSIO, cfitsio_errmsg
+using AstroFITS: FitsInteger, FitsFloat, FitsComplex
+using AstroFITS: CFITSIO, cfitsio_errmsg
 
 const Undef = typeof(undef)
 
@@ -20,8 +20,8 @@ other_type(type::FitsCardType) =
     type === FITS_COMMENT   ? Undef : Int
 
 @testset "BITPIX" begin
-    let type_to_bitpix = EasyFITS.type_to_bitpix,
-        type_from_bitpix = EasyFITS.type_from_bitpix
+    let type_to_bitpix = AstroFITS.type_to_bitpix,
+        type_from_bitpix = AstroFITS.type_from_bitpix
         # Standard BITPIX types.
         @test type_to_bitpix(UInt8)   ===   8
         @test type_to_bitpix(Int16)   ===  16
@@ -48,8 +48,8 @@ other_type(type::FitsCardType) =
 end
 
 @testset "Data types" begin
-    let type_to_code = EasyFITS.type_to_code,
-        type_from_code = EasyFITS.type_from_code
+    let type_to_code = AstroFITS.type_to_code,
+        type_from_code = AstroFITS.type_from_code
         @test type_from_code(type_to_code(AbstractString)) === String
         @test type_from_code(type_to_code(SubString)) === String
         @test type_from_code(type_to_code(String)) === String
@@ -72,9 +72,9 @@ end
 end
 
 @testset "TFORM types" begin
-    let Bit = EasyFITS.Bit,
-        type_to_letter = EasyFITS.type_to_letter,
-        type_from_letter = EasyFITS.type_from_letter
+    let Bit = AstroFITS.Bit,
+        type_to_letter = AstroFITS.type_to_letter,
+        type_from_letter = AstroFITS.type_from_letter
         @test type_to_letter(AbstractString) === 'A'
         @test type_to_letter(SubString)      === 'A'
         @test type_to_letter(String)         === 'A'
@@ -134,8 +134,8 @@ end
 end
 
 @testset "Utilities" begin
-    @test EasyFITS.CFITSIO_VERSION isa VersionNumber
-    let new_array = EasyFITS.new_array
+    @test AstroFITS.CFITSIO_VERSION isa VersionNumber
+    let new_array = AstroFITS.new_array
         let A = new_array(Float32, 4, 5, 6)
             @test eltype(A) === Float32
             @test size(A) === (4, 5, 6)
@@ -164,13 +164,13 @@ end
         @test_throws DimensionMismatch new_array(Int16,   Val(2), (4, 5, 6))
         @test_throws DimensionMismatch new_array(UInt32,  Val(2), [4, 5, 6])
     end
-    let dense_array = EasyFITS.dense_array,
+    let dense_array = AstroFITS.dense_array,
         A = convert(Array, reshape(1:24, 2,3,4)),
         B = view(A, :, 1:2:3, :)
         @test dense_array(A) === A
         @test isa(dense_array(B), Array)
     end
-    let string_length = EasyFITS.string_length
+    let string_length = AstroFITS.string_length
         @test string_length("") == 0
         @test string_length(" ") == 1
         @test string_length("  ") == 1
@@ -443,7 +443,7 @@ end
 
 @testset "FITS Tables" begin
     # Type conversion for reading.
-    let eltypes_to_read = EasyFITS.eltypes_to_read
+    let eltypes_to_read = AstroFITS.eltypes_to_read
         @test (String, UInt8) === @inferred eltypes_to_read(nothing,String)
         @test (String, UInt8) === @inferred eltypes_to_read(String,String)
         @test (UInt8, UInt8) === @inferred eltypes_to_read(UInt8,String)
@@ -606,11 +606,11 @@ end
         # found.
         r = try; read(hdu, "NON-EXISTING-COLUMN"); catch ex; ex; end
         @test r isa FitsError
-        @test r === FitsError(EasyFITS.CFITSIO.COL_NOT_FOUND)
+        @test r === FitsError(AstroFITS.CFITSIO.COL_NOT_FOUND)
         r = try; hdu["NON-EXISTING-KEYWORD"]; catch ex; ex; end
         @test r isa FitsError || r isa KeyError
         if r isa FitsError
-            @test r === FitsError(EasyFITS.KEY_NO_EXIST)
+            @test r === FitsError(AstroFITS.KEY_NO_EXIST)
         end
     end
 
@@ -664,7 +664,7 @@ end
         #
         # Header part as a vector of `key=>val` or `key=>(val,com)` pairs:
         ["DATE"    => (date, "date of creation"),
-         "HISTORY" => "This file has been produced by EasyFITS",
+         "HISTORY" => "This file has been produced by AstroFITS",
          "USER"    => "John Doe"],
         # Data part as an array:
         arr,

@@ -5,7 +5,7 @@ HDU.
 
 ## Open a FITS file
 
-In `EasyFITS`, a FITS file is represented by an instance of [`FitsFile`](@ref). To create a
+In `AstroFITS`, a FITS file is represented by an instance of [`FitsFile`](@ref). To create a
 new FITS file or to open an existing FITS file, simply call the [`FitsFile`](@ref)
 constructor or the [`openfits`](@ref) function:
 

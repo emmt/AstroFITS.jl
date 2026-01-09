@@ -8,27 +8,25 @@ Document*](https://fits.gsfc.nasa.gov/fits_standard.html).
 
 ## The `CFITSIO` sub-module
 
-`EasyFITS` makes use of the [`Clang`](https://github.com/JuliaInterop/Clang.jl)
-Julia package to automatically build file `deps/deps.jl` with constants, types,
-and low level functions to call the functions of the CFITSIO library with
-arguments of the correct type. All these are available in the
-`EasyFITS.CFITSIO` sub-module.
+`AstroFITS` makes use of the [`Clang`](https://github.com/JuliaInterop/Clang.jl) Julia
+package to automatically build file `deps/deps.jl` with constants, types, and low level
+functions to call the functions of the CFITSIO library with arguments of the correct type.
+All these are available in the `AstroFITS.CFITSIO` sub-module.
 
 ## Calls to functions in the CFITSIO library
 
-When calling functions of the CFITSIO library, there are several things to take
-care of:
+When calling functions of the CFITSIO library, there are several things to take care of:
 
-- Passing correct arguments. This is partially ensured by the type assertions
-  in the `@ccall` macro. It is also necessary to check whether a pointer to
-  some opaque structure in the library is valid.
+- Passing correct arguments. This is partially ensured by the type assertions in the
+  `@ccall` macro. It is also necessary to check whether a pointer to some opaque structure
+  in the library is valid.
 
-- Preserving objects from being destroyed while being in use. Of course, this
-  is automatically done by Julia for Julia objects, but must be handled for
-  references or pointers to objects provided by the CFITSIO library.
+- Preserving objects from being destroyed while being in use. Of course, this is
+  automatically done by Julia for Julia objects, but must be handled for references or
+  pointers to objects provided by the CFITSIO library.
 
-When an object `obj` is specified for an argument of type `Ptr{T}` to be passed
-to a C function, Julia `ccall` does something like:
+When an object `obj` is specified for an argument of type `Ptr{T}` to be passed to a C
+function, Julia `ccall` does something like:
 
 ``` julia
 ref = Base.cconvert(Ptr{T}, obj)
@@ -36,15 +34,13 @@ ptr = Base.unsafe_convert(Ptr{T}, ref)
 result = GC.@preserve ref call_some_c_function(..., ptr, ...)
 ```
 
-Here `ref` is an object (by default, `Base.cconvert(Ptr{T},obj)` yields `obj`
-itself) to be used with `Base.unsafe_convert(Ptr{T},ref)` to get the pointer
-and to be preserved from being garbage collected in order to warrant that the
-pointer remains valid.
+Here `ref` is an object (by default, `Base.cconvert(Ptr{T},obj)` yields `obj` itself) to be
+used with `Base.unsafe_convert(Ptr{T},ref)` to get the pointer and to be preserved from
+being garbage collected in order to warrant that the pointer remains valid.
 
-Thanks to this mechanism, it is quite simple to ensure that valid pointers to
-opaque structures of the CFITSIO library be passed to a function of this
-library. For example, the code below is how is handled a pointer to a
-`fitsfile` C structure in our code:
+Thanks to this mechanism, it is quite simple to ensure that valid pointers to opaque
+structures of the CFITSIO library be passed to a function of this library. For example, the
+code below is how is handled a pointer to a `fitsfile` C structure in our code:
 
 ``` julia
 isnull(ptr::Ptr{T}) where {T} = ptr === Ptr{T}(0)
@@ -55,28 +51,26 @@ Base.unsafe_convert(Ptr{CFITSIO.fitsfile}, obj::FitsFile) = check(get_handle(obj
 Base.cconvert(Ptr{CFITSIO.fitsfile}, hdu::AbstractHDU) = get_file(hdu)
 ```
 
-Private methods `isnull` and `check` are introduced for readability. Private
-methods `get_handle` and `get_file` are two of the private accessors introduced
-to hide the fields of a FITS file object and let some other *public* properties
-be implemented. The former yields the pointer to the `fitsfile` C structure
-that is managed by a `FitsFile` object, while the latter yields the `FitsFile`
-object storing the HDU as it is the one that must be used and preserved when
-calling a C function requiring a pointer to a `fitsfile` C structure.
+Private methods `isnull` and `check` are introduced for readability. Private methods
+`get_handle` and `get_file` are two of the private accessors introduced to hide the fields
+of a FITS file object and let some other *public* properties be implemented. The former
+yields the pointer to the `fitsfile` C structure that is managed by a `FitsFile` object,
+while the latter yields the `FitsFile` object storing the HDU as it is the one that must be
+used and preserved when calling a C function requiring a pointer to a `fitsfile` C
+structure.
 
-Note that `FitsFile` objects have a finalizer that automatically releases
-resources such as the associated `fitsfile` C structure when the object is
-garbage collected.
+Note that `FitsFile` objects have a finalizer that automatically releases resources such as
+the associated `fitsfile` C structure when the object is garbage collected.
 
 ## Helper functions
 
-The following non-exported functions are provided for meta-programming and for
-dealing with the types of arguments in calls to the functions of the CFITSIO
-library.
+The following non-exported functions are provided for meta-programming and for dealing with
+the types of arguments in calls to the functions of the CFITSIO library.
 
 ```@docs
-EasyFITS.cfunc
-EasyFITS.ctype
-EasyFITS.cpointer
+AstroFITS.cfunc
+AstroFITS.ctype
+AstroFITS.cpointer
 ```
 
 ## Pixel types
@@ -97,23 +91,21 @@ is the `BITPIX` keyword in FITS image extensions.
 | `FLOAT_IMG`     | `Float32`  |      -32 |
 | `DOUBLE_IMG`    | `Float64`  |      -64 |
 
-Types without a value in the `BITPIX` column are converted by the CFITSIO
-library into the other signed/unsigned type using special values of the
-`BSCALE` and `BZERO` keywords to allow for the reciprocal conversion. This is
-explicitly allowed by the FITS Standard (version 4.0).
+Types without a value in the `BITPIX` column are converted by the CFITSIO library into the
+other signed/unsigned type using special values of the `BSCALE` and `BZERO` keywords to
+allow for the reciprocal conversion. This is explicitly allowed by the FITS Standard
+(version 4.0).
 
-The above equivalence rules are implemented by the following two non-exported
-functions.
+The above equivalence rules are implemented by the following two non-exported functions.
 
 ```@docs
-EasyFITS.type_to_bitpix
-EasyFITS.type_from_bitpix
+AstroFITS.type_to_bitpix
+AstroFITS.type_from_bitpix
 ```
 
 ## Array data types
 
-The following table lists conventions used by `CFITSIO` for array element
-types.
+The following table lists conventions used by `CFITSIO` for array element types.
 
 | Type Code     | C Type               | Short Suffix | Long Suffix |
 |:--------------|:---------------------|:-------------|:------------|
@@ -136,16 +128,15 @@ types.
 | `TBIT`        |                      | `x`          | `_bit`      |
 |               |                      | `u`          | `_null`     |
 
-Complex types `float complex` and `double complex` are stored as pairs of
-single/double precision floating-point values (this is not guaranteed by C99
-standard so strict equivalence does not hold here).
+Complex types `float complex` and `double complex` are stored as pairs of single/double
+precision floating-point values (this is not guaranteed by C99 standard so strict
+equivalence does not hold here).
 
-The above equivalence rules are implemented by the following two non-exported
-functions.
+The above equivalence rules are implemented by the following two non-exported functions.
 
 ```@docs
-EasyFITS.type_to_code
-EasyFITS.type_from_code
+AstroFITS.type_to_code
+AstroFITS.type_from_code
 ```
 
 
@@ -170,10 +161,10 @@ FITS table extensions and the column data type.
 |               |              | `’P’`   | 32-bit array descriptor              |
 |               |              | `’Q’`   | 64-bit array descriptor              |
 
-A few non-standard `TFORM` letters are allowed by CFITSIO. These are converted
-by the library into other types using `TSCALE` and `TZERO` keywords to allow
-for the reciprocal conversion following the same principles as for the `BITPIX`
-code and the `BSCALE` and `BZERO` keywords.
+A few non-standard `TFORM` letters are allowed by CFITSIO. These are converted by the
+library into other types using `TSCALE` and `TZERO` keywords to allow for the reciprocal
+conversion following the same principles as for the `BITPIX` code and the `BSCALE` and
+`BZERO` keywords.
 
 | Type Code    | Julia Type | `TFORM` | Description             |
 |:-------------|:-----------|:--------|:------------------------|
@@ -182,14 +173,13 @@ code and the `BSCALE` and `BZERO` keywords.
 | `TULONG`     | `UInt32`   | `’V’`   | 32-bit unsigned integer |
 | `TULONGLONG` | `UInt64`   | `’W’`   | 64-bit unsigned integer |
 
- The *Type Code* column indicates the code used by CFITSIO (it is not always
-consistent with the C types as defined in the above table, so my guess is that
-this code is only used to keep track of the column data type internally).
+ The *Type Code* column indicates the code used by CFITSIO (it is not always consistent with
+the C types as defined in the above table, so my guess is that this code is only used to
+keep track of the column data type internally).
 
-The above equivalence rules are implemented by the following two non-exported
-functions.
+The above equivalence rules are implemented by the following two non-exported functions.
 
 ```@docs
-EasyFITS.type_to_letter
-EasyFITS.type_from_letter
+AstroFITS.type_to_letter
+AstroFITS.type_from_letter
 ```

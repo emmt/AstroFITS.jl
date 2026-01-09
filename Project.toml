@@ -1,5 +1,5 @@
-name = "EasyFITS"
-uuid = "a977f4a2-36a7-4172-89e7-19c2726f82e5"
+name = "AstroFITS"
+uuid = "34e54ef0-c5bf-48ab-9e5d-cca51f35ed77"
 authors = ["Éric Thiébaut <https://github.com/emmt>"]
 version = "0.7.3"
 

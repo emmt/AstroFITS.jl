@@ -16,14 +16,14 @@ Base.setproperty!(hdu::FitsHDU, sym::Symbol, x) =
 
 """
     hdu.hduname
-    EasyFITS.hduname(hdu::FitsHDU)
+    AstroFITS.hduname(hdu::FitsHDU)
 
 Return the value of the keyword `HDUNAME` in the FITS Header Data Unit `hdu` or `nothing` if
 no such keyword exists.
 
 It is suggested that foreign packages extend this function so that:
 
-    EasyFITS.hduname(T::Type) -> (name, vers)
+    AstroFITS.hduname(T::Type) -> (name, vers)
 
 yields the name and the version of the FITS Header Data Unit when saving an object of type
 `T` in a FITS file. This is also useful to search for such contents in a FITS file.
@@ -32,7 +32,7 @@ yields the name and the version of the FITS Header Data Unit when saving an obje
 hduname(hdu::FitsHDU) = get_hduname(hdu)
 
 """
-    EasyFITS.get_file_at(hdu::FitsHDU) -> file
+    AstroFITS.get_file_at(hdu::FitsHDU) -> file
 
 Return the FITS file associated with FITS Header Data Unit `hdu` checking that the file is
 still open and moving the file position of `file` to that of `hdu`.
@@ -337,7 +337,7 @@ function Base.delete!(hdu::FitsHDU, key::Integer)
 end
 
 """
-    EasyFITS.write_key(dst, key, val, com=nothing) -> dst
+    AstroFITS.write_key(dst, key, val, com=nothing) -> dst
 
 Append a new FITS header card in `dst` associating value `val` and comment `com` to the
 keyword `key`.
@@ -345,7 +345,7 @@ keyword `key`.
 """ write_key
 
 """
-    EasyFITS.update_key(dst, key, val, com=nothing) -> dst
+    AstroFITS.update_key(dst, key, val, com=nothing) -> dst
 
 Update or append a FITS header card in `dst` associating value `val` and comment `com` to
 the keyword `key`.
@@ -429,7 +429,7 @@ function get_hdrspace(hdu::FitsHDU)
 end
 
 """
-    EasyFITS.write_comment(dst, str) -> dst
+    AstroFITS.write_comment(dst, str) -> dst
 
 Append a new FITS comment record in `dst` with text string `str`. The comment record will be
 continued over multiple cards if `str` is longer than 70 characters.
@@ -437,7 +437,7 @@ continued over multiple cards if `str` is longer than 70 characters.
 """ write_comment
 
 """
-    EasyFITS.write_history(dst, str) -> dst
+    AstroFITS.write_history(dst, str) -> dst
 
 Append a new FITS history record in `dst` with text string `str`. The history record will be
 continued over multiple cards if `str` is longer than 70 characters.
@@ -454,7 +454,7 @@ for func in (:write_comment, :write_history)
 end
 
 """
-    EasyFITS.write_date(hdu::FitsHDU) -> hdu
+    AstroFITS.write_date(hdu::FitsHDU) -> hdu
 
 Create or update a FITS comment record of `hdu` with the current date.
 

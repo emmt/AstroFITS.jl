@@ -2,12 +2,12 @@
 
 [![Doc][doc-dev-img]][doc-dev-url]
 [![License][license-img]][license-url]
-[![Build Status](https://github.com/emmt/EasyFITS.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/emmt/EasyFITS.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![Build Status](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Build status](https://ci.appveyor.com/api/projects/status/k3w44749nvqiffn4?svg=true)](https://ci.appveyor.com/project/emmt/easyfits-jl)
-[![Coverage](https://codecov.io/gh/emmt/EasyFITS.jl/graph/badge.svg?token=7QTvjQqn5O)](https://codecov.io/gh/emmt/EasyFITS.jl)
+[![Coverage](https://codecov.io/gh/emmt/AstroFITS.jl/graph/badge.svg?token=7QTvjQqn5O)](https://codecov.io/gh/emmt/AstroFITS.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
-`EasyFITS` is a [Julia](https://julialang.org/) package designed to make it easier to read
+`AstroFITS` is a [Julia](https://julialang.org/) package designed to make it easier to read
 and write data in [FITS](https://fits.gsfc.nasa.gov/fits_standard.html) format without
 sacrificing performances, flexibility, or readability.
 
@@ -26,7 +26,7 @@ The following example demonstrates how to write a FITS file with 3 HDUs, an *Ima
 Extension* and two *Table Extensions*:
 
 ```julia
-using Dates, EasyFITS
+using Dates, AstroFITS
 filename = "/tmp/test.fits";
 arr = rand(Float32, (3,4,5));
 nrows = 20;
@@ -44,7 +44,7 @@ writefits(filename,
           #
           # Header part as a vector of `key=>val` or `key=>(val,com)` pairs:
           ["DATE"    => (now(), "date of creation"),
-           "HISTORY" => "This file has been produced by EasyFITS",
+           "HISTORY" => "This file has been produced by AstroFITS",
            "USER"    => ENV["USER"]],
           # Data part as an array:
           arr,
@@ -113,14 +113,14 @@ should hold.
 
 ## Installation
 
-The easiest way to install `EasyFITS` is via Julia registry
+The easiest way to install `AstroFITS` is via Julia registry
 [`EmmtRegistry`](https://github.com/emmt/EmmtRegistry):
 
 ```julia
 using Pkg
 pkg"registry add General"
 pkg"registry add https://github.com/emmt/EmmtRegistry"
-pkg"add EasyFITS"
+pkg"add AstroFITS"
 ```
 
 Adding the `General` registry (2nd line of the above example) is mandatory to have access to
@@ -130,17 +130,17 @@ the official Julia packages if you never have used the package manager before.
 ## Related projects
 
 The [FITSIO](https://github.com/JuliaAstro/FITSIO.jl) package is another alternative to
-read/write FITS files. `EasyFITS` is no longer based on `FITSIO` and now directly call the
+read/write FITS files. `AstroFITS` is no longer based on `FITSIO` and now directly call the
 functions of the CFITSIO library as provided by `CFITSIO_jll` artifact and uses
 [`FITSHeaders`](https://github.com/emmt/FITSHeaders.jl) to parse metadata (FITS header
 cards).
 
 
 [doc-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[doc-stable-url]: https://emmt.github.io/EasyFITS.jl/stable
+[doc-stable-url]: https://emmt.github.io/AstroFITS.jl/stable
 
 [doc-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[doc-dev-url]: https://emmt.github.io/EasyFITS.jl/dev
+[doc-dev-url]: https://emmt.github.io/AstroFITS.jl/dev
 
 [license-url]: ./LICENSE.md
 [license-img]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat

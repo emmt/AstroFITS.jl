@@ -1,8 +1,14 @@
-# User visible changes for `EasyFITS`
+# User visible changes for `AstroFITS`
 
-This page describes the most important changes in `EasyFITS`. The format is based on [Keep a
+This page describes the most important changes in `AstroFITS`. The format is based on [Keep a
 Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic
 Versioning](https://semver.org).
+
+## Unreleased
+
+### Changed
+
+- `EasyFITS` has been renamed as `AstroFITS` to avoid ambiguities in package names.
 
 ## Version 0.7.3 [2026-01-09]
 

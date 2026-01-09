@@ -70,7 +70,7 @@ end
 
 Base.isopen(file::FitsFile) = getfield(file, :handle) != C_NULL
 
-function Base.close(file::FitsFile; check::Function = EasyFITS.check)
+function Base.close(file::FitsFile; check::Function = AstroFITS.check)
     fptr = getfield(file, :handle)
     if fptr != C_NULL
         setfield!(file, :handle, Ptr{CFITSIO.fitsfile}(0))
@@ -476,7 +476,7 @@ function Base.nameof(hdu::FitsHDU)
 end
 
 """
-    EasyFITS.is_named(hdu, pat) -> bool
+    AstroFITS.is_named(hdu, pat) -> bool
 
 Return whether pattern `pat` is equal to (in the FITS sense if `pat` is a string) or matches
 (if `pat` is a regular expression) the extension of the FITS header data unit `hdu`, or to
@@ -496,7 +496,7 @@ is_named(hdu::FitsHDU, pat::Union{AbstractString,Regex}) =
     same_name(hdu.xtension, pat) || same_name(hdu.hduname, pat) || same_name(hdu.extname, pat)
 
 """
-    EasyFITS.is_named(pat) -> pred
+    AstroFITS.is_named(pat) -> pred
 
 Return a predicate function `pred` that can be used to check whether pattern `pat` is equal
 to (in the FITS sense if `pat` is a string) or matches (if `pat` is a regular expression)

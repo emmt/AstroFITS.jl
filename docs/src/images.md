@@ -1,7 +1,7 @@
 # FITS Image HDUs
 
 FITS Image HDUs store multi-dimensional arrays with numerical values exactly as regular
-Julia arrays (of type `Array`). In `EasyFITS`, a FITS Image HDU is represented by an object
+Julia arrays (of type `Array`). In `AstroFITS`, a FITS Image HDU is represented by an object
 of type [`FitsImageDHU{T,N}`](@ref FitsImageHDU) with `T` the element type and `N` the
 number of dimensions.
 

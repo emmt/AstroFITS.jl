@@ -1,6 +1,6 @@
 
 """
-    s = EasyFITS.OutputCstring(len)
+    s = AstroFITS.OutputCstring(len)
 
 Build an object that can be used as an output C string with at most `len` characters. This
 object can be passed to a C function where an output string is expected via a `ccall` as an
@@ -39,7 +39,7 @@ Base.unsafe_convert(::Type{Ptr{T}}, s::OutputCstring) where {T<:Union{Cvoid,Ccha
     Base.unsafe_convert(Ptr{T}, parent(s))
 
 """
-    EasyFITS.cfitsio_errmsg(status) -> msg::String
+    AstroFITS.cfitsio_errmsg(status) -> msg::String
 
 Return the error message corresponding to CFITSIO `status`.
 
@@ -51,7 +51,7 @@ function cfitsio_errmsg(status::Integer)
 end
 
 """
-    EasyFITS.cfitsio_errmsg() -> msg::Union{String,Nothing}
+    AstroFITS.cfitsio_errmsg() -> msg::Union{String,Nothing}
 
 Read the oldest CFITSIO error message and discard it. `nothing` is returned if there are no
 error messages left.
@@ -123,7 +123,7 @@ for type in (:Missing, :Any)
 end
 
 """
-    EasyFITS.get_field_index(T::Type, name::Union{AbstractSring,Symbol}) -> i::Int
+    AstroFITS.get_field_index(T::Type, name::Union{AbstractSring,Symbol}) -> i::Int
 
 yields the index `i` of the field `name` of an object of type `T`. This functions is used
 for introspection and meta-programming, and is not meant to be fast.
@@ -138,14 +138,14 @@ end
 get_field_index(::Type{T}, name::AbstractString) where {T} = get_field_index(T, Symbol(name))
 
 """
-    EasyFITS.type_to_bitpix(T)
+    AstroFITS.type_to_bitpix(T)
 
 Return the *BITPIX* constant for FITS Image pixels of type `T`. Argument can also be an
-array instance or type. This is the inverse of [`EasyFITS.type_from_bitpix`](@ref).
+array instance or type. This is the inverse of [`AstroFITS.type_from_bitpix`](@ref).
 
 Basic numeric types are recognized by this method which may be extended by other packages to
 yield the CFITSIO codes equivalent to their own types. The CFITSIO constants (to be prefixed
-by `EasyFITS.CFITSIO.`) and their corresponding Julia types and standard BITPIX code are:
+by `AstroFITS.CFITSIO.`) and their corresponding Julia types and standard BITPIX code are:
 
 | CFITSIO Constant | Julia Type | *BITPIX* |
 |:-----------------|:-----------|---------:|
@@ -170,10 +170,10 @@ type_to_bitpix(::Type{<:AbstractArray{T}}) where {T} = type_to_bitpix(T)
 type_to_bitpix(::Type{Bool}) = type_to_bitpix(UInt8)
 
 """
-    EasyFITS.type_from_bitpix(b) -> T
+    AstroFITS.type_from_bitpix(b) -> T
 
 Return the Julia type `T` corresponding to FITS *BITPIX* `b`. This is the inverse of
-[`EasyFITS.type_to_bitpix`](@ref).
+[`AstroFITS.type_to_bitpix`](@ref).
 
 """
 type_from_bitpix(b::Integer) = type_from_bitpix(Int(b)::Int)
@@ -197,14 +197,15 @@ let expr = :(bad_argument("invalid BITPIX value"))
 end
 
 """
-    EasyFITS.type_to_code(T) -> c
+    AstroFITS.type_to_code(T) -> c
 
 Return the CFITSIO type code for a keyword value or table cells of type `T`. Argument can
-also be an array instance or type. This is the inverse of [`EasyFITS.type_from_code`](@ref).
+also be an array instance or type. This is the inverse of
+[`AstroFITS.type_from_code`](@ref).
 
 Basic numeric types and string types are recognized by this method which may be extended by
 other packages to yield the CFITSIO codes equivalent to their own types. The CFITSIO type
-constants (to be prefixed by `EasyFITS.CFITSIO.`) and their corresponding C and Julia types
+constants (to be prefixed by `AstroFITS.CFITSIO.`) and their corresponding C and Julia types
 are:
 
 | CFITSIO Constant | C Types              | Julia Types        |
@@ -232,7 +233,7 @@ type_to_code(arr::AbstractArray) = type_to_code(typeof(arr))
 type_to_code(::Type{<:AbstractArray{T}}) where {T} = type_to_code(T)
 
 """
-    EasyFITS.pixeltype_to_code(T)
+    AstroFITS.pixeltype_to_code(T)
 
 Return the CFITSIO type code for an image extension storing an array of elements type `T`.
 Argument can also be an array instance or type.
@@ -247,10 +248,10 @@ pixeltype_to_code(::Type{Bool}) =
     type_to_code(UInt8)
 
 """
-    EasyFITS.type_from_code(c) -> T
+    AstroFITS.type_from_code(c) -> T
 
 Return the Julia type `T` corresponding to CFITSIO type code `c`. This is the inverse of
-[`EasyFITS.type_to_code`](@ref).
+[`AstroFITS.type_to_code`](@ref).
 
 """
 type_from_code(c::Integer) = type_from_code(as(Int, c))
@@ -306,21 +307,21 @@ let types = Set{DataType}(),
 end
 
 """
-    EasyFITS.type_to_letter(T) -> c::Char
+    AstroFITS.type_to_letter(T) -> c::Char
 
 Return the letter of the `TFORMn` keyword representing table cells of type `T` in FITS.
 Argument can also be an array instance or type. This is the inverse of
-[`EasyFITS.type_from_letter`](@ref).
+[`AstroFITS.type_from_letter`](@ref).
 
 """
 type_to_letter(arr::AbstractArray) = type_to_letter(typeof(arr))
 type_to_letter(::Type{<:AbstractArray{T}}) where {T} = type_to_letter(T)
 
 """
-    EasyFITS.type_from_letter(c) -> T
+    AstroFITS.type_from_letter(c) -> T
 
 Return the Julia type `T` corresponding to CFITSIO column type letter `c` as assumed for the
-`TFORMn` keywords. This is the inverse of [`EasyFITS.type_to_letter`](@ref).
+`TFORMn` keywords. This is the inverse of [`AstroFITS.type_to_letter`](@ref).
 
 """
 type_from_letter(c::Integer) = type_from_letter(Char(c)::Char)
@@ -389,7 +390,7 @@ const   FloatTypes = Union{  FLOAT_TYPES...,}
 const ComplexTypes = Union{COMPLEX_TYPES...,}
 
 """
-    EasyFITS.cfunc(pfx::Union{AbstractString,Symbol}, T::Type) -> sym
+    AstroFITS.cfunc(pfx::Union{AbstractString,Symbol}, T::Type) -> sym
 
 Return the symbolic name of the function in the CFITSIO library whose prefix is `pfx` and
 whose suffix is deduced from the type `T`. Long/short function names are supported and
@@ -401,7 +402,7 @@ cfunc(func::AbstractString, ::Type{T}) where {T} =
     Symbol(func, endswith(func, '_') ? long_suffix(T) : short_suffix(T))
 
 """
-    EasyFITS.ctype(T) -> T′
+    AstroFITS.ctype(T) -> T′
 
 Return the C type equivalent to `T` in CFITSIO library. This is mostly for Booleans which
 are treated as C `char` in the library, the other basic numerical types being unchanged. An
@@ -410,8 +411,8 @@ sure that Julia arrays with elements of type `T` can safely be used to store val
 `T′`.
 
 !!! warning
-    This only applies to element type of arrays. For boolean scalars, a `Cint`
-    is the correct type.
+    This only applies to element type of arrays. For boolean scalars, a `Cint` is the
+    correct type.
 
 """
 function ctype(::Type{Bool})
@@ -428,7 +429,7 @@ function ctype(::Type{T}) where {T<:Union{Int8,UInt8,Int16,UInt16,
 end
 
 """
-    EasyFITS.cpointer(arr::AbstractArray) -> ptr::Ptr{ctype(eltype(arr))}
+    AstroFITS.cpointer(arr::AbstractArray) -> ptr::Ptr{ctype(eltype(arr))}
 
 Return a pointer to the elements of array `arr` that can be used in calls to functions of
 the CFITSIO library. Compared to `Ptr{Cvoid}(pointer(arr))`, this function yields a typed
@@ -442,7 +443,7 @@ pointer which prevents using arguments of the wrong type.
 cpointer(arr::AbstractArray) = convert(Ptr{ctype(eltype(arr))}, pointer(arr))
 
 """
-    EasyFITS.fix_booleans!(arr::AbstractArray{Bool}) -> arr
+    AstroFITS.fix_booleans!(arr::AbstractArray{Bool}) -> arr
 
 Ensure that the values in array of booleans `arr` read by a function of the CFITSIO library
 are only `true` or `false`.
@@ -457,7 +458,7 @@ function fix_booleans!(arr::AbstractArray{Bool})
 end
 
 """
-    EasyFITS.map_recursively(f, r, a1, a2; missing=missing)
+    AstroFITS.map_recursively(f, r, a1, a2; missing=missing)
 
 Return the result of applying function `f` recursively to update result `r` for each pair of
 values of tuples `a1` and `a2`. The recursion stops when the longest of `a1` and `a2` is
@@ -482,7 +483,7 @@ except that in-lining is used to unroll the loop.
     map_recursively(f, f(r, first(a1), first(a2)), Base.tail(a1), Base.tail(a2); missing)
 
 """
-    EasyFITS.subarray_params(dims, inds) -> (d, f, s, l)
+    AstroFITS.subarray_params(dims, inds) -> (d, f, s, l)
 
 Return resulting dimensions `d`, first indices `f`, steps `s`, and last indices `l` when
 sub-indexing an array of size `dims` with sub-indices `inds`. Tuples `f`, `s`, and `l` have
@@ -542,7 +543,7 @@ end
 @noinline out_of_bounds_subindex() = throw(ArgumentError("out of bound sub-index"))
 
 """
-    EasyFITS.new_array(T, dims...) -> arr
+    AstroFITS.new_array(T, dims...) -> arr
 
 Return a new array with element type `T` and dimensions `dims...` which may be specified as
 for the `Array` constructor or as a vector of integers. In this latter case, the result is
@@ -551,7 +552,7 @@ not type-stable.
 If the number of dimensions, say `N`, is known, a type-stable result is
 returned by:
 
-    EasyFITS.new_array(T, Val(N), dims...) -> arr
+    AstroFITS.new_array(T, Val(N), dims...) -> arr
 
 """
 new_array(::Type{T}, dims::NTuple{N,Integer}) where {T,N} = Array{T,N}(undef, dims)
@@ -570,7 +571,7 @@ new_array(::Type{T}, dims::AbstractVector{<:Integer}) where {T} =
 end
 
 """
-    EasyFITS.dense_array(arr)
+    AstroFITS.dense_array(arr)
 
 Return a dense array, that is an array that stores its elements contiguously, with same
 dimensions and values as `arr`. If `arr` is already a dense array, it is returned.
@@ -590,7 +591,7 @@ function to_string!(buf::Vector{UInt8})
 end
 
 """
-    EasyFITS.string_length(str)
+    AstroFITS.string_length(str)
 
 Return the length of the string `str` not counting non-significant trailing spaces. As
 assumed in the CFITSIO library and by FITS standard, if there are only spaces in `str`, the

@@ -11,8 +11,8 @@ FitsLogic
 ## Aliases
 
 ```@docs
-EasyFITS.Header
-EasyFITS.TableData
+AstroFITS.Header
+AstroFITS.TableData
 ```
 
 ## Direct reading/writing of FITS files
@@ -26,7 +26,7 @@ writefits!
 
 ## FITS files
 
-Missing `EasyFITS.write!`, `read(::FitsFile, ...)`, `read!(::DenseArray{<:Number},::FitsImageHDU,::SubArrayIndex...)`
+Missing `AstroFITS.write!`, `read(::FitsFile, ...)`, `read!(::DenseArray{<:Number},::FitsImageHDU,::SubArrayIndex...)`
 `read!(::DenseArray{<:Number},::FitsImageHDU)`
 
 
@@ -75,12 +75,12 @@ FitsHeader(::FitsHDU)
 
 ```@docs
 nameof(::FitsHDU)
-EasyFITS.is_named
+AstroFITS.is_named
 ```
 
 ## Utilities
 
 ```@docs
-EasyFITS.OutputCstring
-EasyFITS.cfitsio_errmsg
+AstroFITS.OutputCstring
+AstroFITS.cfitsio_errmsg
 ```

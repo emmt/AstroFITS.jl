@@ -2,7 +2,7 @@
 
 FITS Table HDUs store table data. A **table cell** is the table entry at a given row and
 column of the table. The cells of a given table column may contain more than a single value.
-In `EasyFITS`, a FITS Table HDU is represented by an object of type [`FitsTableDHU`](@ref
+In `AstroFITS`, a FITS Table HDU is represented by an object of type [`FitsTableDHU`](@ref
 FitsTableHDU).
 
 !!! note
@@ -239,10 +239,10 @@ write(file,
       [col1 => arr1, col2 => arr2, ...]) # <----------- data part
 ```
 
-which follows the `write(dest, header, data)` convention in `EasyFITS` with `dest` the
+which follows the `write(dest, header, data)` convention in `AstroFITS` with `dest` the
 destination, `header` the header, and `data` the data.
 
-The header may be specified in [any forms](#Header_forms) accepted by the `EasyFITS`
+The header may be specified in [any forms](#Header_forms) accepted by the `AstroFITS`
 methods. Similarly, the columns may be specified in various forms as explained below.
 
 
