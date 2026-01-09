@@ -4,7 +4,9 @@ This page describes the most important changes in `AstroFITS`. The format is bas
 Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic
 Versioning](https://semver.org).
 
-## Unreleased
+## Version 1.0.0 [2026-01-09]
+
+This version is proposed as the first official version of `AstroFITS` (formerly `EasyFITS`).
 
 ### Changed
 

@@ -1,7 +1,7 @@
 name = "AstroFITS"
 uuid = "34e54ef0-c5bf-48ab-9e5d-cca51f35ed77"
 authors = ["Éric Thiébaut <https://github.com/emmt>"]
-version = "0.7.3"
+version = "1.0.0"
 
 [deps]
 CEnum = "fa961155-64e5-5f13-b03f-caf6b980ea82"
