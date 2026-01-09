@@ -3,7 +3,7 @@
 [![Doc][doc-dev-img]][doc-dev-url]
 [![License][license-img]][license-url]
 [![Build Status](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Build status](https://ci.appveyor.com/api/projects/status/k3w44749nvqiffn4?svg=true)](https://ci.appveyor.com/project/emmt/easyfits-jl)
+[![Build status](https://ci.appveyor.com/api/projects/status/v9gpf7j3x8d29fo4?svg=true)](https://ci.appveyor.com/project/emmt/astrofits-jl)
 [![Coverage](https://codecov.io/gh/emmt/AstroFITS.jl/graph/badge.svg?token=7QTvjQqn5O)](https://codecov.io/gh/emmt/AstroFITS.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
