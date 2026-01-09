@@ -80,6 +80,5 @@ include("hdus.jl")
 include("images.jl")
 include("tables.jl")
 include("init.jl")
-include("deprecated.jl")
 
 end # module

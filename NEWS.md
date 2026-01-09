@@ -10,6 +10,8 @@ Versioning](https://semver.org).
 
 - `EasyFITS` has been renamed as `AstroFITS` to avoid ambiguities in package names.
 
+- Deprecated methods have been removed.
+
 ## Version 0.7.3 [2026-01-09]
 
 ### Fixed
