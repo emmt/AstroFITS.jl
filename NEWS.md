@@ -12,6 +12,10 @@ Versioning](https://semver.org).
 
 - Deprecated methods have been removed.
 
+### Fixed
+
+- Extension to `DataFrames` is updated.
+
 ## Version 0.7.3 [2026-01-09]
 
 ### Fixed
