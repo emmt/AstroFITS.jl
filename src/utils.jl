@@ -82,7 +82,10 @@ check(status::Ref{Cint}) = check(status[])
 check(status::Cint) = status == 0 ? nothing : throw(FitsError(status))
 check(ptr::Ptr{CFITSIO.fitsfile}) = isnull(ptr) ? bad_argument("FITS file has been closed") : ptr
 
-bad_argument(str::ArgumentError.types[1]) = throw(ArgumentError(str))
+assertion_error(mesg::AbstractString) = throw(AssertionError(mesg))
+@noinline assertion_error(args...) = assertion_error(string(args...))
+
+bad_argument(mesg::AbstractString) = throw(ArgumentError(mesg))
 @noinline bad_argument(args...) = bad_argument(string(args...))
 
 @noinline invalid_property(obj, key::Symbol) =

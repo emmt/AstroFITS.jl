@@ -234,6 +234,8 @@ cards_1 = (KEY_B1 = (true,  "This is true"),
 cards_2 = [String(key) => val for (key,val) in pairs(cards_1)]
 tempfile, io = mktemp(; cleanup=false)
 close(io)
+othertempfile, io = mktemp(; cleanup=false)
+close(io)
 
 @testset "FITS Headers" begin
     #@test FitsCardType(Any)             === FITS_UNKNOWN
@@ -718,6 +720,18 @@ end
     @test x3["NAME"] == name
     @test x3["XY"] == xy
     @test x3["LABEL"] == label
+
+    # Check issue #2 is fixed.
+    openfits(tempfile, "r") do f
+        let hdu = f[2], hdr = FitsHeader(hdu), data = read(hdu)
+            rm(othertempfile, force=true)
+            @test_throws AssertionError writefits!(othertempfile, hdr, data)
+            rm(othertempfile, force=true)
+            writefits!(othertempfile, filter(!is_structural, hdr), data)
+            @test isfile(othertempfile)
+            rm(othertempfile, force=true)
+        end
+    end
 
     # Check `overwrite` keyword and similar.
     @test_throws FitsError openfits(tempfile, "w")

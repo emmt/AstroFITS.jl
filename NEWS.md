@@ -8,7 +8,15 @@ Versioning](https://semver.org).
 
 ## Added
 
+- `push!(hdu::FitsHDU, card)` has a new keyword, `allow_structural`, which specifies whether
+  it is allowed to set FITS structural keywords in *Header Data Unit* `hdu`. By default,
+  `allow_structural` is false because it is unsafe to change FITS structural keywords.
+
 - Exports `FITSHeaders.is_structural`.
+
+## Fixed
+
+- More explicit error message when attempting to add structural keywords to an HDU.
 
 ## Version 1.0.0 [2026-01-09]
 

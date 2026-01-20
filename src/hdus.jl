@@ -237,15 +237,16 @@ comment of the FITS card.
 Base.setindex!(hdu::FitsHDU, x, key::CardName) = push!(hdu, key => x)
 
 """
-    push!(hdu::FitsHDU, rec; append=false) -> hdu
+    push!(hdu::FitsHDU, rec; append=false, allow_structural=false) -> hdu
 
 Update or append header record `rec` to FITS Header Data Units `hdu`. If the name of `rec`
 does not yet exist in the header part of `hdu` or if it is a commentary or continuation FITS
 keyword (`"COMMENT"`, `"HISTORY"`, `""`, or `"CONTINUE"`), a new record is appended to the
 header part of `hdu`; otherwise, the existing record in `hdu` is updated. If keyword
 `append` is set true, the record is appended whether another record with the same name
-already exists or not. Forcing append is not recommended as it may result in an invalid
-header.
+already exists or not. Keyword `allow_structural` specifies whether it is allowed to push or
+append a structural FITS keyword. Forcing append or allowing structural keywords is not
+recommended as it may result in an invalid header.
 
 Argument `rec` may be a FITS card (of type `FitsCard`) or anything that can be converted
 into a FITS card. This includes a pair `key => val`, `key => com`, or `key => (val,com)`
@@ -254,7 +255,9 @@ with `key` the keyword of the record, `val` its value and `com` its comment.
 To push more than one record, call `merge!` instead of `push!`.
 
 """
-function Base.push!(hdu::FitsHDU, card::FitsCard; append::Bool = false)
+function Base.push!(hdu::FitsHDU, card::FitsCard;
+                    append::Bool = false, allow_structural::Bool = false)
+    !allow_structural && is_structural(card) && forbidden_structural(card.name)
     if card.type === FITS_LOGICAL
         set_key(hdu, card.name, card.logical, card.comment; append)
     elseif card.type === FITS_INTEGER
@@ -285,10 +288,17 @@ end
 
 Base.push!(hdu::FitsHDU, rec; kwds...) = push!(hdu, FitsCard(rec); kwds...)
 
-"""
-    merge!(hdu::FitsHDU, recs) -> hdu
+@noinline forbidden_structural(key::Union{AbstractString,Symbol}) = assertion_error(
+    "HDU header must not specify any structural keyword such as \"$key\", you may call ",
+    "`push!` or `merge!` with `allow_structural=true` if you know what you do and want ",
+    "to bypass this restriction, or filter the header content with ",
+    "`filter(!is_structural, header)`")
 
-Push all FITS header cards in `recs` into FITS Header Data Units `hdu` and returns it.
+"""
+    merge!(hdu::FitsHDU, recs; kwds...) -> hdu
+
+Push all FITS header cards in `recs` into FITS Header Data Units `hdu` and returns it. Any
+specified keywords are passed to `push!`.
 
 Examples:
 
@@ -298,23 +308,23 @@ Examples:
 In most cases, calling `merge!` is a shortcut to:
 
     for rec in recs
-        push!(hdu, rec)
+        push!(hdu, rec; kwds...)
     end
 
 """
-function Base.merge!(hdu::FitsHDU, hdr::Header; append::Bool = false)
+function Base.merge!(hdu::FitsHDU, hdr::Header; kwds...)
     # By default, assume an iterable object producing cards or equivalent.
     for rec in hdr
-        push!(hdu, rec; append)
+        push!(hdu, rec; kwds...)
     end
     return hdu
 end
 
-Base.merge!(hdu::FitsHDU, recs::Nothing; append::Bool = false) = hdu
+Base.merge!(hdu::FitsHDU, recs::Nothing; kwds...) = hdu
 
-function Base.merge!(hdu::FitsHDU, hdr::NamedTuple; append::Bool = false)
+function Base.merge!(hdu::FitsHDU, hdr::NamedTuple; kwds...)
     for key in keys(hdr)
-        push!(hdu, key => hdr[key]; append)
+        push!(hdu, key => hdr[key]; kwds...)
     end
     return hdu
 end

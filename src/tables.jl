@@ -891,6 +891,11 @@ vals` or `key => (vals, units)` with `key` the (symbolic) name of the column, `v
 values, and `units` its optional units. The collection can be a dictionary, a named tuple, a
 vector of pairs, or a tuple of pairs.
 
+!!! note
+    `header` must not specify structural keywords. If `header` is an instance of
+    `FitsHeader`, you may call `filter(!is_structural, header)` to filter-out such
+    keywords.
+
 """
 function write(file::FitsFile, header::OptionalHeader, cols::TableData; kwds...)
     # Create a new FITS Table HDU with column definitions.

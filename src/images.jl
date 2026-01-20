@@ -340,6 +340,10 @@ Write a new FITS Image Extension in `file` with non-structural header keywords s
 `hdr` and data specified by array `arr` or by `nothing`. In the latter case, the data part
 is empty.
 
+!!! note
+    Header `hdr` must not specify structural keywords. If `hdr` is an instance of
+    `FitsHeader`, you may call `filter(!is_structural, hdr)` to filter-out such keywords.
+
 """
 function write(file::FitsFile, hdr::OptionalHeader,
                arr::AbstractArray{T,N}) where {T<:Number,N}
