@@ -1,7 +1,7 @@
 module AstroFITS
 
 export
-    # Re-export from FITSHeaders:
+    # Re-exports from `FITSHeaders`.
     @Fits_str,
     FitsKey,
     FitsCard,
@@ -15,6 +15,7 @@ export
     FITS_COMMENT,
     FITS_UNDEFINED,
     FITS_END,
+    is_structural,
 
     # FITS header data units.
     FitsHDU,
