@@ -283,7 +283,7 @@ function FitsImageHDU{T,N}(file::FitsFile, dims::DimsLike) where {T,N}
     if length(file) < n
         setfield!(file, :nhdus, n)
     end
-    return FitsImageHDU{T,N}(BareBuild(), file, n)
+    return _FitsImageHDU(T, Dims{N}, file, n)
 end
 
 # Yield array size in a form suitable for `fits_create_img`.

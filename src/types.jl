@@ -295,21 +295,23 @@ exception.
 """
 struct Invalid end
 
-# Singleton type to indicate that the inner constructor should be called.
-struct BareBuild end
-
 # Any other FITS extension than Image and Table (who knows...).
 struct FitsAnyHDU <: FitsHDU
     file::FitsFile
     num::Int
-    FitsAnyHDU(::BareBuild, file::FitsFile, num::Integer) = new(file, num)
+    # Private inner constructor.
+    global _FitsAnyHDU
+    _FitsAnyHDU(file::FitsFile, num::Integer) = new(file, num)
 end
 
 # FITS Image extension (Array for Julia).
 struct FitsImageHDU{T,N} <: FitsHDU
     file::FitsFile
     num::Int
-    function FitsImageHDU{T,N}(::BareBuild, file::FitsFile, num::Integer) where {T,N}
+    # Private inner constructor.
+    global _FitsImageHDU
+    function _FitsImageHDU(::Type{T}, ::Type{Dims{N}},
+                           file::FitsFile, num::Integer) where {T,N}
         isbitstype(T) || bad_argument("parameter `T=$T` is not a plain type")
         isa(N, Int) && N ≥ 0 || bad_argument("parameter `N=$N` must be a nonnegative `Int`")
         return new{T,N}(file, num)
@@ -321,8 +323,9 @@ struct FitsTableHDU <: FitsHDU
     file::FitsFile
     num::Int
     ascii::Bool
-    FitsTableHDU(::BareBuild, file::FitsFile, num::Integer, ascii::Bool) =
-        new(file, num, ascii)
+    # Private inner constructor.
+    global _FitsTableHDU
+    _FitsTableHDU(file::FitsFile, num::Integer, ascii::Bool) = new(file, num, ascii)
 end
 
 """

@@ -418,9 +418,9 @@ function Base.getindex(file::FitsFile, i::Integer)
     check(CFITSIO.fits_movabs_hdu(file, i, type, status))
     type = FitsHDUType(type[])
     if type == FITS_ASCII_TABLE_HDU
-        return FitsTableHDU(BareBuild(), file, i, true)
+        return _FitsTableHDU(file, i, true)
     elseif type == FITS_BINARY_TABLE_HDU
-        return FitsTableHDU(BareBuild(), file, i, false)
+        return _FitsTableHDU(file, i, false)
     elseif type == FITS_IMAGE_HDU
         bitpix = Ref{Cint}()
         check(CFITSIO.fits_get_img_equivtype(file, bitpix, status))
@@ -428,9 +428,9 @@ function Base.getindex(file::FitsFile, i::Integer)
         check(CFITSIO.fits_get_img_dim(file, ndims, status))
         N = as(Int, ndims[])
         T = type_from_bitpix(bitpix[])
-        return FitsImageHDU{T,N}(BareBuild(), file, i)
+        return _FitsImageHDU(T, Dims{N}, file, i)
     else
-        return FitsAnyHDU(BareBuild(), file, i)
+        return _FitsAnyHDU(file, i)
     end
 end
 

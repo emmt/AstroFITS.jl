@@ -935,7 +935,7 @@ function create_table(file::FitsFile, cols; ascii::Bool=false, nrows::Integer=0)
     if length(file) < n
         setfield!(file, :nhdus, n)
     end
-    return FitsTableHDU(BareBuild(), file, n, ascii)
+    return _FitsTableHDU(file, n, ascii)
 end
 
 function parse_column_definition!(ttype::AbstractVector{String},
