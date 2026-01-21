@@ -248,6 +248,17 @@ close(io)
     @test FitsCardType(Complex{Float64}) === FITS_COMPLEX
     @test FitsCardType(String)           === FITS_STRING
     @test FitsCardType(Nothing)          === FITS_COMMENT
+    let shortname = AstroFITS.shortname
+        @test @inferred(shortname(FITS_LOGICAL)) == "LOGICAL"
+        @test @inferred(shortname(FITS_INTEGER)) == "INTEGER"
+        @test @inferred(shortname(FITS_FLOAT)) == "FLOAT"
+        @test @inferred(shortname(FITS_STRING)) == "STRING"
+        @test @inferred(shortname(FITS_COMPLEX)) == "COMPLEX"
+        @test @inferred(shortname(FITS_COMMENT)) == "COMMENT"
+        @test @inferred(shortname(FITS_UNDEFINED)) == "UNDEFINED"
+        @test @inferred(shortname(FITS_END)) == "END"
+        # FIXME @test @inferred(shortname(FitsCardType(-1))) == "*UNKNOWN*"
+    end
 end
 
 @testset "FITS Images" begin
@@ -353,6 +364,47 @@ end
                 # FIXME:     @test card.value() === bak
                 # FIXME: end
                 delete!(hdu, key)
+            end
+            if cards isa AbstractVector{<:Pair{<:AbstractString,<:Any}}
+                # Test `get(T, hdu, key[, def])`.
+                @test_throws KeyError get(Bool, hdu, "__SIMPLE")
+                @test get(Bool, hdu, "__SIMPLE", missing) === missing
+                for (key, dat) in cards
+                    uppercase(rstrip(String(key))) ∈ ("HISTORY","COMMENT","") && continue
+                    val = dat isa Tuple ? dat[1] : dat
+                    if val isa Union{Bool,Integer,Complex{<:Integer}}
+                        let T = typeof(val),
+                            x = @inferred(get(T, hdu, key))
+                            y = get(T, hdu, key, missing)
+                            @test x isa T
+                            @test x == val
+                            @test y isa T
+                            @test y == val
+                        end
+                    elseif val isa Union{Real,Complex}
+                        let T = float(typeof(val)),
+                            x = @inferred(get(T, hdu, key))
+                            y = get(T, hdu, key, missing)
+                            @test x isa T
+                            @test x ≈ val
+                            @test y isa T
+                            @test y ≈ val
+                        end
+                    elseif val isa AbstractString
+                        let T = String,
+                            r = rstrip(val),
+                            x = @inferred(get(T, hdu, key))
+                            y = get(T, hdu, key, missing)
+                            @test x isa T
+                            @test x == r
+                            @test y isa T
+                            @test y == r
+                        end
+                    else
+                        @test_throws ArgumentError get(typeof(val), hdu, key)
+                        @test_throws ArgumentError get(typeof(val), hdu, key, missing)
+                    end
+                end
             end
             for (key, dat) in (cards isa AbstractVector ? cards : pairs(cards))
                 local card = get(hdu, key, nothing)

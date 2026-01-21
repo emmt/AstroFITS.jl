@@ -144,6 +144,67 @@ for (type, code) in (:Integer  => CFITSIO.KEY_OUT_BOUNDS,
     end
 end
 
+"""
+    get(T::Type, hdu::FitsHDU, key) -> val::T
+    get(T::Type, hdu::FitsHDU, key, def) -> val::Union{T,typeof(def)}
+
+Return the value of keyword `key` in FITS header of `hdu` converted to type `T`. If the
+keyword is not part of the header, then `def` is returned if specified, otherwise a
+`KeyError` exception is thrown.
+
+!!! note
+    The conversion to type `T` is more strict than `hdu[key].value(T)` in the sense that the
+    card type must be `FITS_LOGICAL` if `T = Bool`, `FITS_INTEGER` if `T <: Integer`,
+    `FITS_FLOAT` if `T <: AbstractFloat`, `FITS_COMPLEX` if `T <: Complex`, and
+    `FITS_STRING` if `T <: AbstractString`. Other types `T` are considered as an error.
+
+"""
+function Base.get(::Type{T}, H::Union{FitsHDU,FitsHeader} #= FIXME type-piracy =#,
+                  key::AbstractString) where {T}
+    card = get(H, key, missing)
+    card === missing && throw(KeyError(key))
+    return get_value_strict(T, card)
+end
+
+function Base.get(::Type{T}, H::Union{FitsHDU,FitsHeader} #= FIXME type-piracy =#,
+                  key::AbstractString, def) where {T}
+    card = get(H, key, missing)
+    card === missing && return def
+    return get_value_strict(T, card)
+end
+
+# This is like `FitsHeader.get_value(T, card)` but more restrictive.
+function get_value_strict(::Type{T}, card::FitsCard) where {T}
+    if T <: Bool
+        card.type == FITS_LOGICAL && return convert(T, card.logical)
+    elseif T <: Integer
+        card.type == FITS_INTEGER && return convert(T, card.integer)
+    elseif T <: AbstractFloat
+        card.type == FITS_FLOAT && return convert(T, card.float)
+    elseif T <: Complex
+        card.type == FITS_COMPLEX && return convert(T, card.complex)
+    elseif T <: AbstractString
+        card.type == FITS_STRING && return convert(T, card.string)
+    else
+        throw(ArgumentError("unexpected value type `T = $T`"))
+    end
+    bad_keyword_type(T, card)
+end
+
+@noinline bad_keyword_type(::Type{T}, card::FitsCard) where {T} =
+    error("FITS keyword \"", card.name, "\" of type ", shortname(card.type),
+          " cannot be converted to type `", T, "`")
+
+shortname(type::FitsCardType) =
+    type == FITS_LOGICAL ? "LOGICAL" :
+    type == FITS_INTEGER ? "INTEGER" :
+    type == FITS_FLOAT ? "FLOAT" :
+    type == FITS_STRING ? "STRING" :
+    type == FITS_COMPLEX ? "COMPLEX" :
+    type == FITS_COMMENT ? "COMMENT" :
+    type == FITS_UNDEFINED ? "UNDEFINED" :
+    type == FITS_END ? "END" : "*UNKNOWN*"
+
 Base.haskey(hdu::FitsHDU, key::Integer) = key ∈ keys(hdu)
 function Base.haskey(hdu::FitsHDU, key::CardName)
     buf = Memory{UInt8}(undef, CFITSIO.FLEN_CARD)

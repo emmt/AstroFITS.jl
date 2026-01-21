@@ -14,6 +14,10 @@ Versioning](https://semver.org).
 
 - Exports `FITSHeaders.is_structural`.
 
+- Extend `Base.get` so that `get(T,hdu,key)` and `get(T,hdu,key,def)` yield a value of type
+  `T` if `key` is found in `hdu` and has a type compatible with `T`. If `key` is not found,
+  then `def` is returned if specified, otherwise a `KeyError` exception is thrown.
+
 ## Fixed
 
 - More explicit error message when attempting to add structural keywords to an HDU.
