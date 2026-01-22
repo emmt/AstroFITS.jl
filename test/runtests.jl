@@ -782,6 +782,40 @@ end
     @test x3["XY"] == xy
     @test x3["LABEL"] == label
 
+    # Test append!
+    openfits(tempfile, "r") do src
+        openfits(othertempfile, "w!") do dst
+            # Build a FITS file with HDUS: src[2], src[1:end]..., src[end:-1:2]...
+            @test length(dst) == 0
+            # First append src[2] which is a table so an empty HDU shall be written first in
+            # the destination.
+            @inferred append!(dst, src[2])
+            @test length(dst) == 2 # because an empty HDU has been created
+            @test dst[1] isa FitsImageHDU{UInt8,0}
+            # Second, append all the source file given its name.
+            @inferred append!(dst, tempfile)
+            @test length(dst) == 2 + length(src)
+            # Third, append all source HDUs but the first one in reverse order.
+            @inferred append!(dst, @view(src[end:-1:2]))
+            @test length(dst) == 2*length(src) + 1
+            i = 1 # skip first empty HDU
+            n = length(src)
+            for j in [2, (1:n)..., (n:-1:2)...]
+                i += 1
+                dst_hdu = dst[i]
+                src_hdu = src[j]
+                @test typeof(dst_hdu) == typeof(src_hdu)
+                @test dst_hdu.type == src_hdu.type
+                @test dst_hdu.hduname == src_hdu.hduname
+                if src_hdu.type == FITS_BINARY_TABLE_HDU
+                    @test dst_hdu.column_names == src_hdu.column_names
+                elseif src_hdu.type == FITS_IMAGE_HDU
+                    @test dst_hdu.data_size == src_hdu.data_size
+                end
+            end
+        end
+    end
+
     # Check issue #2 is fixed.
     openfits(tempfile, "r") do f
         let hdu = f[2], hdr = FitsHeader(hdu), data = read(hdu)

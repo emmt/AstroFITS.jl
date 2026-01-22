@@ -8,6 +8,10 @@ Versioning](https://semver.org).
 
 ## Added
 
+- `append!(dest::FitsFile, src...)` can be used to append HDUs (*Header Data Units*) to
+  `dest`, a FITS file open for writing. `src` may be a HDU to append just this HDU or
+  another FITS file to append all its HDUS.
+
 - `push!(hdu::FitsHDU, card)` has a new keyword, `allow_structural`, which specifies whether
   it is allowed to set FITS structural keywords in *Header Data Unit* `hdu`. By default,
   `allow_structural` is false because it is unsafe to change FITS structural keywords.

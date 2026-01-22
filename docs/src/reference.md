@@ -43,6 +43,8 @@ seekend(::FitsFile)
 position(::FitsFile)
 flush(::FitsFile)
 eachmatch(::Any, ::FitsFile)
+append!(::FitsFile, ::FitsHDU)
+append!(::FitsFile, ::AbstractString)
 ```
 
 ## FITS Image HDUs

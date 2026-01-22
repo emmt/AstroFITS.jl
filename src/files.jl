@@ -250,8 +250,74 @@ write(file::FitsFile) = file # nothing to do but return the argument
     error("no method to write FITS extension for data of type $(typeof(data))")
 end
 
-#----------------------------------------------------------------------------------------
-# Interface to FITS files.
+"""
+    append!(dest::FitsFile, src::FitsHDU; morekeys=0) -> dest
+
+Append to the FITS file `dest` (open for writing) the content of the FITS *Header Data Unit*
+(HDU) `src`. Keyword `morekeys` specifies the number of additional keywords that may be
+written in the header part of the HDU copied in `dest`.
+
+"""
+function Base.append!(dest::FitsFile, src::FitsHDU; morekeys::Integer = 0)
+    # Memorize initial position in source file and move to the position of the source HDU.
+    oldpos = position(src.file)
+    hdupos = src.number
+    oldpos != hdupos && seek(src.file, hdupos)
+    try
+        # Copy the source HDU into the destination file.
+        check(CFITSIO.fits_copy_hdu(src.file, dest, morekeys, Ref{Cint}(0)))
+
+        # Flush internal buffers in destination.
+        flush(dest)
+    finally
+        # Set number of HDUs in destination.
+        nhdus = max(position(dest), get_num_hdus(dest))
+        setfield!(dest, :nhdus, Int(nhdus)::Int)
+
+        # Restore initial position in source.
+        position(src.file) != oldpos && seek(src.file, oldpos)
+    end
+    return dest
+end
+
+"""
+    append!(dest::FitsFile, src...) -> dest
+
+Append to the FITS file `dest` (open for writing) the content of the source(s) `src`. A
+source may be a FITS *Header Data Unit* (HDU) which is copied as a new HDU at the end of
+`dest`. Otherwise a source may be a FITS file or the name of a FITS file to copy *all its
+HDUs* to the end of `dest`. Otherwise, a source may be an iterable whose elements are HDUs
+(this include an instance of `FitsFile`).
+
+To append a sub-range of a source file, you may use a view. For example, copying all HDUs
+but the first one of `"oldfile.fits"` to `"newfile.fits"` may be done by:
+
+```julia
+append!(openfits("newfile.fits", "w!"), @view(openfits("oldfile.fits")[2:end]))
+```
+
+"""
+function Base.append!(dest::FitsFile, src...)
+    for x in src
+        append!(dest, x)
+    end
+    return dest
+end
+
+function Base.append!(dest::FitsFile, filename::AbstractString)
+    openfits(filename, "r") do file
+        append!(dest, file)
+    end
+end
+
+function Base.append!(dest::FitsFile, iter)
+    for hdu in iter
+        append!(dest, hdu)
+    end
+    return dest
+end
+
+#----------------------------------------------------------------- Interface to FITS files -
 
 """
     pathof(file::FitsFile) -> filename
