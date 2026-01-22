@@ -1,4 +1,4 @@
-# this recipe demonstrates how to copy each HDU of a file to another filepath, allowing you
+# This recipe demonstrates how to copy each HDU of a file to another filepath, allowing you
 # to modify some HDUs on the way, or to add or delete some HDUs.
 
 using AstroFITS
@@ -7,7 +7,7 @@ using AstroFITS
 fits_filepath = mktemp()[1]
 writefits!(fits_filepath,
     FitsHeader("HDUNAME" => "IMG"), [0 0; 1 1],
-    FitsHeader("HDUNAME" => "TAB"), [ "NUMBER" => [1,2,3],
+    FitsHeader("HDUNAME" => "TAB"), [ "NUMBER" => ([1,2,3], "ordinal"),
                                       "NAME"   => ["monday", "tuesday", "wednesday"] ])
 
 
@@ -18,31 +18,27 @@ output_filepath = mktemp()[1]
 f_in = openfits(fits_filepath)
 f_out = openfits(output_filepath, "w!")
 
-# let's say f_in contains HDUs "A", "B", and "C"
+# we will modify hdu "IMG" and copy the others
 for hdu in f_in
-    # replace `hduname == "B"` with your own test
-    if hdu.hduname == "B"
-        # here you can do what you want with hdu "B"
+
+    if hdu.hduname == "IMG"
         H = FitsHeader(hdu)
         D = read(hdu)
         
-        # you can augment the header
-        push!(H, "TOTO" => 44)
+        push!(H, "TARGET" => "a cat")
         
-        # in case of an image you can reshape it for example
-        D = reshape(D, 16, 4)
-        # if so you MUST modify the structural keywords (NAXIS, etc) accordingly in `H`
-        H["NAXIS"] = 2
-        H["NAXIS1"] = 16
-        H["NAXIS2"] = 4
+        D2 = Array{eltype(D)}(undef, 2, 2, 2)
+        D2[:,:,1] .= D
+        D2[:,:,2] .= [2 2; 3 3]
         
-        write(f_out, H, D)
+        # need to filter out structural keywords, as they are infered from data
+        write(f_out, filter(!is_structural, H), D2)
+
     else # copy HDU
         H = FitsHeader(hdu)
-        # remove structural keywords to avoid problems
-        H = filter(!FITSHeaders.Parser.is_structural, H)
         D = read(hdu)
-        write(f_out, H, D)
+        # need to filter out structural keywords, as they are infered from data
+        write(f_out, filter(!is_structural, H), D)
     end
 end
 
