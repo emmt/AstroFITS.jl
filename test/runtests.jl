@@ -488,11 +488,20 @@ end
     # Write empty image.
     @test_throws Exception writefits!(tempfile, FitsHeader(), []) # TODO: MethodError expected
     writefits!(tempfile, FitsHeader(), Int32[])
-    arr = readfits(Array, tempfile)
-    @test length(arr) == 0
-    @test eltype(arr) == Int32
-    # Read FITS header.
-    @test read(FitsHeader, tempfile) isa FitsHeader
+    hdr = @inferred read(FitsHeader, tempfile)
+    @test hdr isa FitsHeader
+    @test get(Int, hdr, "BITPIX") == 32
+    @test get(Int, hdr, "NAXIS") == 1
+    @test get(Int, hdr, "NAXIS1") == 0
+    # Idem but by a different method.
+    openfits(tempfile, "w!") do file
+        hdu = @inferred FitsImageHDU(file)
+        @test hdu isa FitsImageHDU{UInt8,0}
+    end
+    hdr = @inferred read(FitsHeader, tempfile)
+    @test hdr isa FitsHeader
+    @test get(Int, hdr, "BITPIX") == 8
+    @test get(Int, hdr, "NAXIS") == 0
 end
 
 @testset "FITS Tables" begin

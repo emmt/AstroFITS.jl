@@ -316,7 +316,7 @@ end
 
 # Special case of empty Image HDU.
 function FitsImageHDU(file::FitsFile)
-    return FitsImageHDU{UInt,0}(file, ())
+    return FitsImageHDU{UInt8,0}(file, ())
 end
 
 # Infer element type and dimensions from the array to be written.

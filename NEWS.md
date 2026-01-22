@@ -22,6 +22,10 @@ Versioning](https://semver.org).
 
 - More explicit error message when attempting to add structural keywords to an HDU.
 
+- Starting an empty FITS Image by `FitsImageHDU(file)` assumes `UInt8` element type
+  corresponding to `BITPIX = 8`. It was `UInt` corresponding to `BITPIX = 32` or `64`
+  depending on the architecture.
+
 ## Version 1.0.0 [2026-01-09]
 
 This version is proposed as the first official version of `AstroFITS` (formerly `EasyFITS`).
