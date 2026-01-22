@@ -45,8 +45,8 @@ using TypeUtils: @public
 
 @public(
     Header,
-    TableData,
     OutputCstring,
+    TableData,
     cfitsio_errmsg)
 
 using FITSHeaders
