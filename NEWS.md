@@ -26,6 +26,8 @@ Versioning](https://semver.org).
   corresponding to `BITPIX = 8`. It was `UInt` corresponding to `BITPIX = 32` or `64`
   depending on the architecture.
 
+- Fix inference for `readfits(FitsHeader, filename)` with some old Julia versions.
+
 ## Version 1.0.0 [2026-01-09]
 
 This version is proposed as the first official version of `AstroFITS` (formerly `EasyFITS`).

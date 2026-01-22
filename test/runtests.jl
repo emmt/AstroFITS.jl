@@ -488,7 +488,7 @@ end
     # Write empty image.
     @test_throws Exception writefits!(tempfile, FitsHeader(), []) # TODO: MethodError expected
     writefits!(tempfile, FitsHeader(), Int32[])
-    hdr = @inferred read(FitsHeader, tempfile)
+    hdr = @inferred readfits(FitsHeader, tempfile)
     @test hdr isa FitsHeader
     @test get(Int, hdr, "BITPIX") == 32
     @test get(Int, hdr, "NAXIS") == 1
@@ -498,7 +498,7 @@ end
         hdu = @inferred FitsImageHDU(file)
         @test hdu isa FitsImageHDU{UInt8,0}
     end
-    hdr = @inferred read(FitsHeader, tempfile)
+    hdr = @inferred readfits(FitsHeader, tempfile)
     @test hdr isa FitsHeader
     @test get(Int, hdr, "BITPIX") == 8
     @test get(Int, hdr, "NAXIS") == 0
@@ -757,12 +757,12 @@ end
          :name => name,
          :xy => (xy, "mm"),
          :label => label])
-    h1 = read(FitsHeader, tempfile)
+    h1 = @inferred read(FitsHeader, tempfile)
     @test h1 isa FitsHeader
     @test h1["DATE"].value(DateTime) === date
     @test h1["USER"].value() == "John Doe"
     @test readfits(tempfile) == arr
-    h2 = read(FitsHeader, tempfile, ext=2)
+    h2 = @inferred read(FitsHeader, tempfile, ext=2)
     @test h2 isa FitsHeader
     @test h2["EXTNAME"].value() == "MY-EXTENSION"
     x2 = readfits(tempfile, ext=2)
@@ -771,7 +771,7 @@ end
     @test x2["INDICES"] == inds
     @test x2["MASS"] == mass
     @test x2["POSITION"] == position
-    h3 = read(FitsHeader, tempfile, ext="MY-OTHER-EXTENSION")
+    h3 = @inferred read(FitsHeader, tempfile, ext="MY-OTHER-EXTENSION")
     @test h3 isa FitsHeader
     @test h3["EXTNAME"].value() == "MY-OTHER-EXTENSION"
     x3 = readfits(tempfile, ext="MY-OTHER-EXTENSION")

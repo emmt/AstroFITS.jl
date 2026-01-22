@@ -131,7 +131,7 @@ for the possible keywords `kwds...`.
 function readfits(::Type{FitsHeader}, filename::AbstractString;
                   ext::Union{AbstractString,Integer} = 1, kwds...)
     FitsFile(filename, "r"; kwds...) do file
-        FitsHeader(file[ext])
+        FitsHeader(file[ext])::FitsHeader
     end
 end
 
