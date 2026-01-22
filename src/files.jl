@@ -44,7 +44,7 @@ function FitsFile(filename::AbstractString, mode::AbstractString = "r";
     file = FitsFile(refptr[], access, "", 0)
     finalizer(finalize, file)
     if access != :w
-        # Get the number of HDSs.
+        # Get the number of HDUs.
         nhdus = get_num_hdus(file)
         setfield!(file, :nhdus, Int(nhdus)::Int)
     end
@@ -121,8 +121,6 @@ Open or create a FITS file. See [`FitsFile`](@ref) for details.
 
 """
     readfits(FitsHeader, filename; ext=1, kwds...) -> hdr::FitsHeader
-    read(FitsHeader, filename; ext=1, kwds...) -> hdr::FitsHeader
-    read(filename, FitsHeader; ext=1, kwds...) -> hdr::FitsHeader
 
 Read the header of the `ext` extension of the FITS file `filename`. See [`FitsFile`](@ref)
 for the possible keywords `kwds...`.
@@ -135,11 +133,11 @@ function readfits(::Type{FitsHeader}, filename::AbstractString;
     end
 end
 
-Base.read(filename::AbstractString, ::Type{FitsHeader}; kwds...) =
-    readfits(FitsHeader, filename; kwds...)
-
-Base.read(::Type{FitsHeader}, filename::AbstractString; kwds...) =
-    readfits(FitsHeader, filename; kwds...)
+import Base: read # must be imported to deprecate in old Julia versions
+@deprecate(read(filename::AbstractString, ::Type{FitsHeader}; kwds...),
+           readfits(FitsHeader, filename; kwds...), false)
+@deprecate(read(::Type{FitsHeader}, filename::AbstractString; kwds...),
+           readfits(FitsHeader, filename; kwds...), false)
 
 """
     readfits([R::Type,] filename, args...; ext=1, extended=false, kwds...) -> data

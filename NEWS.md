@@ -6,7 +6,7 @@ Versioning](https://semver.org).
 
 ## Unreleased
 
-## Added
+### Added
 
 - `append!(dest::FitsFile, src...)` can be used to append HDUs (*Header Data Units*) to
   `dest`, a FITS file open for writing. `src` may be a HDU to append just this HDU or
@@ -22,7 +22,12 @@ Versioning](https://semver.org).
   `T` if `key` is found in `hdu` and has a type compatible with `T`. If `key` is not found,
   then `def` is returned if specified, otherwise a `KeyError` exception is thrown.
 
-## Fixed
+### Deprecated
+
+- `read(FitsHeader, filename)` and `read(filename, FitsHeader)` constitute type-piracy and
+  have been deprecated. Call `readfits(FitsHeader, filename)` instead.
+
+### Fixed
 
 - More explicit error message when attempting to add structural keywords to an HDU.
 

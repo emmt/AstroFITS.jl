@@ -757,12 +757,12 @@ end
          :name => name,
          :xy => (xy, "mm"),
          :label => label])
-    h1 = @inferred read(FitsHeader, tempfile)
+    h1 = @test_deprecated read(FitsHeader, tempfile)
     @test h1 isa FitsHeader
     @test h1["DATE"].value(DateTime) === date
     @test h1["USER"].value() == "John Doe"
     @test readfits(tempfile) == arr
-    h2 = @inferred read(FitsHeader, tempfile, ext=2)
+    h2 = @inferred readfits(FitsHeader, tempfile, ext=2)
     @test h2 isa FitsHeader
     @test h2["EXTNAME"].value() == "MY-EXTENSION"
     x2 = readfits(tempfile, ext=2)
@@ -771,7 +771,7 @@ end
     @test x2["INDICES"] == inds
     @test x2["MASS"] == mass
     @test x2["POSITION"] == position
-    h3 = @inferred read(FitsHeader, tempfile, ext="MY-OTHER-EXTENSION")
+    h3 = @inferred readfits(FitsHeader, tempfile, ext="MY-OTHER-EXTENSION")
     @test h3 isa FitsHeader
     @test h3["EXTNAME"].value() == "MY-OTHER-EXTENSION"
     x3 = readfits(tempfile, ext="MY-OTHER-EXTENSION")
