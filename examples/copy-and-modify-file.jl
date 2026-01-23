@@ -47,7 +47,9 @@ for hdu in f_in
         D2[:,:,2] .= [2 2; 3 3]
         
         # need to filter out structural keywords, as they are infered from data
-        write(f_out, filter(!is_structural, H), D2)
+        H2 = filter(!is_structural, H)
+        
+        write(f_out, H2, D2)
 
     elseif hdu.extname == "TAB"
         H = FitsHeader(hdu)
@@ -61,7 +63,7 @@ for hdu in f_in
         push!(D["NAME"], "thursday")
         push!(D["TEMPERATURE"], 18.5)
         
-        # need to filter out structural keywords before writing
+        # need to filter out structural keywords, as they are infered from data
         # need to filter our TUNIT keywords as they are column order dependent,
         # and we may change that order
         H2 = filter(c -> !startswith(c.name, "TUNIT"), filter(!is_structural, H))

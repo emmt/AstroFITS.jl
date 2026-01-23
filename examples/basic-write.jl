@@ -37,8 +37,8 @@ end
 # ========================== #
 
 H = FitsHeader()
-data_size = (2, 10)
-D = rand(data_size...)
+data_size = (2, 2)
+D = [0 0; 1 1]
 
 
 # write one HDU image to a fits filepath
@@ -53,6 +53,7 @@ writefits!(fits_filepath, H, D)
 f = openfits(fits_filepath, "w!")
 write(f, H, D)
 
+
 # declare a new image HDU in an opened file
 hdu = FitsImageHDU{Float64}(f, data_size)
 # you can change eltype `Float64`, example `Int32`
@@ -61,7 +62,7 @@ hdu = FitsImageHDU{Float64}(f, data_size)
 hdu["EXPTIME"] = (12.3, "[s] exposure time")
 # must be done before writing data
 
-# write image data to a declared HDU
+# write image data to a declared HDU (it writes to the file of the HDU)
 write(hdu, D)
 
 # ========================== #
@@ -69,39 +70,42 @@ write(hdu, D)
 # ========================== #
 
 H = FitsHeader()
-nrows = 20
 
-D_col_phase = fill(1, nrows)
+# three columns for this example
+D = [
+    "NAME"    => ["monday", "tuesday", "wednesday"],
+    "NUMBER"  => ([1,2,3], "ordinal"),  # can specify the units (here ordinal)
+    "SIGNALS" => [ true    true   false ;
+                   false   true   true  ; # can be dimensional,
+                   false   true   false ; # last dimension must be for the table's rows
+                   true    true   false ;
+                   false   false  true  ]
+]
 
-# cells can contain dimensional data but last dimension is always for rows
-D_col_xy    = fill(0e0, (2, nrows))
-
-D = [ "phase" => D_col_phase,
-      "XY"    => D_col_xy   ]
-
-
-# write one HDU image to a fits filepath
+# write one HDU table to a fits filepath
 writefits(fits_filepath, H, D)
+# error if file already exists
 
 # same but overwrite destination file
 writefits!(fits_filepath, H, D)
 
 
-# write one HDU image to a opened file
+# write one HDU table to a opened file
 write(f, H, D)
-
-# same but overwrite destination file
-write!(f, H, D)
 
 
 # declare a new table HDU in an opened file
-tablehdu = FitsTableHDU(f, [ "phase" => Int,
-                             "XY"    => (Float64, 2) ]) # must indicate if dimensional
+tablehdu = FitsTableHDU(f, [
+    "NAME"    => (String, 9), # for strings we must specify number of characters
+    "NUMBER"  => (Int, "ordinal"), # we specify the unit here
+    "SIGNALS" => (Bool, 5) # must indicate the dimensions size (not the rows)
+])
 
 # you can add header keywords like for image HDU, see above
 
 # write one data column
-write(tablehdu, "XY" => D_col_xy)
+write(tablehdu, "NAME" => ["monday", "tuesday", "wednesday"])
 
 # write several data columns
-write(tablehdu, "XY" => D_col_xy, "phase" => D_col_phase)
+write(tablehdu, "NAME" => ["monday", "tuesday", "wednesday"],
+                "NUMBER" => [1,2,3])
