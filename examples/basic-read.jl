@@ -82,9 +82,9 @@ H = FitsHeader(hdu)
 # see package `FITSHeaders` for more documentation
 
 # same but from filepath
-H = read(FitsHeader, fits_filepath)
-H = read(FitsHeader, fits_filepath; ext=1)
-H = read(FitsHeader, fits_filepath; ext="IMG")
+H = readfits(FitsHeader, fits_filepath)
+H = readfits(FitsHeader, fits_filepath; ext=1)
+H = readfits(FitsHeader, fits_filepath; ext="IMG")
 
 # get number of header keywords
 length(H)
