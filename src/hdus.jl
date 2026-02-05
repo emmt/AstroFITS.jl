@@ -160,14 +160,14 @@ keyword is not part of the header, then `def` is returned if specified, otherwis
 
 """
 function Base.get(::Type{T}, H::Union{FitsHDU,FitsHeader} #= FIXME type-piracy =#,
-                  key::AbstractString) where {T}
+                  key::CardName) where {T}
     card = get(H, key, missing)
     card === missing && throw(KeyError(key))
     return get_value_strict(T, card)
 end
 
 function Base.get(::Type{T}, H::Union{FitsHDU,FitsHeader} #= FIXME type-piracy =#,
-                  key::AbstractString, def) where {T}
+                  key::CardName, def) where {T}
     card = get(H, key, missing)
     card === missing && return def
     return get_value_strict(T, card)
