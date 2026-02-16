@@ -90,8 +90,8 @@ FITS file must be a *Fits Image* (possibly empty), not a *FITS Table*.
 To read the headers of the 1st and 2nd HDU of the file:
 
 ```julia
-hdr1 = read(filename, FitsHeader)
-hdr2 = read(filename, FitsHeader, ext=2)
+hdr1 = readfits(FitsHeader, filename) 
+hdr2 = readfits(FitsHeader, filename, ext=2)
 ```
 
 yield two instance of `FitsHeader`. Reading the data parts is very easy:
