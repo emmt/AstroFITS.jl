@@ -66,6 +66,33 @@ read(hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
 read(::Type{Array}, hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
+function read(::Type{Array}, hdu::FitsAnyHDU; kwds...)
+    file = get_file_at(hdu)
+    hdu.type == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    T = type_from_bitpix(get_img_equivtype(file))
+    return read(Array{T}, hdu; kwds...)
+end
+
+function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
+    file = get_file_at(hdu)
+    hdu.type == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    N = get_img_dim(file)
+    dims = Vector{Clong}(undef, max(N, 1))
+    check(CFITSIO.fits_get_img_size(file, N, dims, Ref{Cint}(0)))
+    outdims = ntuple(i -> Int(dims[i]), N)
+    len = max(prod(outdims), 1)
+    vec = Vector{T}(undef, len)
+    check(CFITSIO.fits_read_img(file, pixeltype_to_code(T), 1, len,
+                                C_NULL, vec, Ref{Cint}(0), Ref{Cint}(0)))
+    return reshape(vec, outdims)
+end
+
+function read(::Type{Array{T,N}}, hdu::FitsAnyHDU; kwds...) where {T<:Number,N}
+    arr = read(Array{T}, hdu; kwds...)
+    ndims(arr) == N || throw(DimensionMismatch("image extension has ndims=$(ndims(arr)) not N=$N"))
+    return arr
+end
+
 read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any,N}; kwds...) where {T<:Number,N} =
     read(Array{T,N}, hdu; kwds...)
 
