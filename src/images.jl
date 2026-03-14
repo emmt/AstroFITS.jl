@@ -68,14 +68,18 @@ read(::Type{Array}, hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
 
 function read(::Type{Array}, hdu::FitsAnyHDU; kwds...)
     file = get_file_at(hdu)
-    hdu.type == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    exttype = Ref{Cint}(0)
+    check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
+    FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     T = type_from_bitpix(get_img_equivtype(file))
     return read(Array{T}, hdu; kwds...)
 end
 
 function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
     file = get_file_at(hdu)
-    hdu.type == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    exttype = Ref{Cint}(0)
+    check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
+    FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     N = get_img_dim(file)
     dims = Vector{Clong}(undef, max(N, 1))
     check(CFITSIO.fits_get_img_size(file, N, dims, Ref{Cint}(0)))
