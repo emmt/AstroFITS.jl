@@ -824,6 +824,50 @@ end
     @test x3["XY"] == xy
     @test x3["LABEL"] == label
 
+# Coverage for readfits(Array, ...) and read(..., FitsAnyHDU) methods.
+arr2 = readfits(Array, tempfile)
+@test arr2 isa Array{Float32, 3}
+@test arr2 == arr
+arr3 = readfits(Array{Float64, 3}, tempfile)
+@test arr3 isa Array{Float64, 3}
+@test arr3 == Float64.(arr)
+err = try
+    readfits(FitsHeader, tempfile, ext = "NO-SUCH-EXT")
+    nothing
+catch ex
+    ex
+end
+@test err isa ErrorException
+@test occursin("no FITS Header Data Unit named \"NO-SUCH-EXT\"", sprint(showerror, err))
+
+openfits(tempfile, "r") do file
+    any_img = AstroFITS._FitsAnyHDU(file, 1)
+    any_tbl = AstroFITS._FitsAnyHDU(file, 2)
+
+    data_any = read(Array, any_img)
+    @test data_any isa Array{Float32, 3}
+    @test data_any == arr
+
+    data_cast = read(Array{Float64}, any_img)
+    @test data_cast isa Array{Float64, 3}
+    @test data_cast == Float64.(arr)
+
+    data_exact = read(Array{Float32, 3}, any_img)
+    @test data_exact isa Array{Float32, 3}
+    @test data_exact == arr
+
+    @test_throws DimensionMismatch read(Array{Float32, 2}, any_img)
+
+    err = try
+        read(Array, any_tbl)
+        nothing
+    catch ex
+        ex
+    end
+    @test err isa ErrorException
+    @test occursin("HDU #2 is not an image extension", sprint(showerror, err))
+end
+
     # Test append!
     openfits(tempfile, "r") do src
         openfits(othertempfile, "w!") do dst
