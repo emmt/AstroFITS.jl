@@ -63,11 +63,20 @@ documentation for [`read!`](@ref read!(::Array,::FitsImageHDU))).
 read(hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
+read(hdu::FitsImageHDU{T, 0}; kwds...) where {T} =
+    Vector{T}(undef, 0)
+
 read(::Type{Array}, hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
 read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any,N}; kwds...) where {T<:Number,N} =
     read(Array{T,N}, hdu; kwds...)
+
+read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    Vector{T}(undef, 0)
+
+read(::Type{Array{T, 0}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    throw(ArgumentError("NAXIS=0 image HDU has no data; use `read(Array, hdu)` or `read(Array{T}, hdu)`"))
 
 function read(::Type{Array{T,N}}, hdu::FitsImageHDU{<:Any,N};
               null::Union{DenseArray{Bool,N},Ref{T},Nothing} = nothing,
