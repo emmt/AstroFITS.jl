@@ -63,8 +63,14 @@ documentation for [`read!`](@ref read!(::Array,::FitsImageHDU))).
 read(hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
+read(hdu::FitsImageHDU{T, 0}; kwds...) where {T} =
+    Vector{T}(undef, 0)
+
 read(::Type{Array}, hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
+
+read(::Type{Array}, hdu::FitsImageHDU{T, 0}; kwds...) where {T} =
+    Vector{T}(undef, 0)
 
 """
     _bitpix_to_julia_type(bitpix) -> Type
@@ -91,7 +97,11 @@ function read(::Type{Array}, hdu::FitsAnyHDU; kwds...)
     check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
     FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     T = _bitpix_to_julia_type(get_img_equivtype(file))
+N = get_img_dim(file)
+N == 0 && return Vector{T}(undef, 0)
+
 return read(Array{T}, hdu; kwds...)::Array
+
 
 end
 
@@ -101,7 +111,10 @@ function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
     check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
     FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     N = get_img_dim(file)
+N == 0 && return Vector{T}(undef, 0)
+
 return _read_array_T_valN(Array{T}, hdu, Val(N); kwds...)::Array{T}
+
 
 end
 
@@ -117,6 +130,8 @@ function read(::Type{Array{T,N}}, hdu::FitsAnyHDU; kwds...) where {T<:Number,N}
 
     nd = get_img_dim(file)
     nd == N || throw(DimensionMismatch("image extension has ndims=$nd not N=$N"))
+N == 0 && throw(ArgumentError("NAXIS=0 image HDU has no data payload; use `read(Array, hdu)` or `read(Array{T}, hdu)`"))
+
 
     dims_ref = Ref{NTuple{N,Clong}}()
     check(CFITSIO.fits_get_img_size(file, N, dims_ref, Ref{Cint}(0)))
@@ -139,6 +154,12 @@ end
 
 read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any,N}; kwds...) where {T<:Number,N} =
     read(Array{T,N}, hdu; kwds...)
+
+read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    Vector{T}(undef, 0)
+
+read(::Type{Array{T, 0}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    throw(ArgumentError("NAXIS=0 image HDU has no data; use `read(Array, hdu)` or `read(Array{T}, hdu)`"))
 
 function read(::Type{Array{T,N}}, hdu::FitsImageHDU{<:Any,N};
               null::Union{DenseArray{Bool,N},Ref{T},Nothing} = nothing,

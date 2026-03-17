@@ -511,6 +511,19 @@ end
     @test hdr isa FitsHeader
     @test get(Int, hdr, "BITPIX") == 8
     @test get(Int, hdr, "NAXIS") == 0
+@test readfits(Array, tempfile) == UInt8[]
+openfits(tempfile, "r") do file
+    hdu0 = file[1]
+    any0 = AstroFITS._FitsAnyHDU(file, 1)
+    @test read(hdu0) == UInt8[]
+    @test read(Array, hdu0) == UInt8[]
+    @test read(Array{UInt8}, hdu0) == UInt8[]
+    @test read(Array, any0) == UInt8[]
+    @test read(Array{UInt8}, any0) == UInt8[]
+    @test_throws ArgumentError read(Array{UInt8, 0}, hdu0)
+    @test_throws ArgumentError read(Array{UInt8, 0}, any0)
+end
+
 end
 
 @testset "FITS Tables" begin
