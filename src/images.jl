@@ -91,7 +91,8 @@ function read(::Type{Array}, hdu::FitsAnyHDU; kwds...)
     check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
     FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     T = _bitpix_to_julia_type(get_img_equivtype(file))
-    return read(Array{T}, hdu; kwds...)
+return read(Array{T}, hdu; kwds...)::Array
+
 end
 
 function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
@@ -100,7 +101,8 @@ function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
     check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
     FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
     N = get_img_dim(file)
-    return _read_array_T_valN(Array{T}, hdu, Val(N); kwds...)
+return _read_array_T_valN(Array{T}, hdu, Val(N); kwds...)::Array{T}
+
 end
 
 @generated function _read_array_T_valN(::Type{Array{T}}, hdu::FitsAnyHDU, ::Val{N}; kwds...) where {T<:Number,N}

@@ -185,7 +185,8 @@ function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool =
             i === nothing && error("no FITS Header Data Unit named \"$ext\"")
             Int(i)
         end
-        return read(R, _FitsAnyHDU(file, exti), args...; kwds...)
+return read(R, _FitsAnyHDU(file, exti), args...; kwds...)::R
+
     finally
         close(file; check=pass)
     end
