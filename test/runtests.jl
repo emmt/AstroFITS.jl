@@ -493,6 +493,15 @@ end
     @test get(Int, hdr, "BITPIX") == 32
     @test get(Int, hdr, "NAXIS") == 1
     @test get(Int, hdr, "NAXIS1") == 0
+img = readfits(Array, tempfile)
+@test img isa Vector{Int32}
+@test img == Int32[]
+openfits(tempfile, "r") do file
+    any_img = AstroFITS._FitsAnyHDU(file, 1)
+    @test read(Array, any_img) == Int32[]
+    @test read(Array{Int32, 1}, any_img) == Int32[]
+end
+
     # Idem but by a different method.
     openfits(tempfile, "w!") do file
         hdu = @inferred FitsImageHDU(file)

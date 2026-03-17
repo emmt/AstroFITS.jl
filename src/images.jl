@@ -124,11 +124,12 @@ function read(::Type{Array{T,N}}, hdu::FitsAnyHDU; kwds...) where {T<:Number,N}
     @inbounds for d in dims
         len *= Int(d)
     end
-    len = max(len, 1)
 
     vec = Vector{T}(undef, len)
-    check(CFITSIO.fits_read_img(file, pixeltype_to_code(T), 1, len,
-                                C_NULL, vec, Ref{Cint}(0), Ref{Cint}(0)))
+    if len > 0
+        check(CFITSIO.fits_read_img(file, pixeltype_to_code(T), 1, len,
+                                    C_NULL, vec, Ref{Cint}(0), Ref{Cint}(0)))
+    end
 
     outdims = ntuple(i -> Int(dims[i]), N)
     return reshape(vec, outdims)
