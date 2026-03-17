@@ -406,6 +406,25 @@ end
                 # FIXME:     @test card.value() === bak
                 # FIXME: end
                 delete!(hdu, key)
+
+                # Check comment update does not change undefined keyword type.
+                hdu["AGE"] = (missing, "initial comment")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                AstroFITS.update_key(hdu, "AGE", nothing, "updated comment")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                @test card.comment == "updated comment"
+
+                # Same behavior through public high-level API.
+                hdu["AGE"] = (nothing, "updated again")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                @test card.comment == "updated again"
+                delete!(hdu, "AGE")
             end
             if cards isa AbstractVector{<:Pair{<:AbstractString,<:Any}}
                 # Test `get(T, hdu, key[, def])`.

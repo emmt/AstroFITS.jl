@@ -429,8 +429,11 @@ to be `com`.
 """
 update_key(hdu::FitsHDU, key::CardName, val::Nothing, com::Nothing) = hdu
 function update_key(hdu::FitsHDU, key::CardName, val::Nothing, com::AbstractString)
-    # BUG: When modifying the comment of an existing keyword which has an undefined value,
-    #      the keyword becomes a commentary keyword.
+    card = get(hdu, key, nothing)
+    if card isa FitsCard && card.type === FITS_UNDEFINED
+        # Preserve undefined-valued keywords when only updating the comment.
+        return update_key(hdu, key, missing, com)
+    end
     check(CFITSIO.fits_modify_comment(hdu, key, com, Ref{Cint}(0)))
     return hdu
 end
