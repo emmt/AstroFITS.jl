@@ -182,6 +182,48 @@ end
         @test string_length(" a  ") == 2
     end
 
+let eq = (x, y) -> isequal(AstroFITS.FitsLogic(), x, y)
+    @test eq("A", "a")
+    @test eq("AB ", "ab")
+    @test !eq("ABx", "ab")
+    @test !eq("ab", "ABx")
+end
+
+let subarray_params = AstroFITS.subarray_params
+    @test subarray_params((2, 2), (1, 2, 1)) == ((), (1, 2), (1, 1), (1, 2))
+    @test_throws ArgumentError subarray_params((2, 2), (3, :))
+end
+
+let _tmp = mktemp(; cleanup = false)
+    tmp, io = _tmp
+    close(io)
+    rm(tmp, force = true)
+    try
+        openfits(tmp, "w!"; extended = true) do file
+            @test file isa FitsFile
+            FitsImageHDU(file)
+        end
+
+        openfits(tmp, "r"; extended = true) do file
+            @test seek(file, 1) == FITS_IMAGE_HDU
+            @test_throws ErrorException file[x -> false]
+            @test findprev(hdu -> false, file, length(file)) === nothing
+        end
+
+        openfits(tmp, "rw"; extended = true) do file
+            status = Ref{Cint}(0)
+            intval = Ref{Cint}(7)
+            @test CFITSIO.fits_write_key(file, CFITSIO.TINT, "COVINT", intval, "", status) == 0
+            @test CFITSIO.fits_write_key_str(file, "COVSTR", "ok", "", status) == 0
+            @test CFITSIO.fits_write_key_log(file, "COVLOG", 1, "", status) == 0
+            @test CFITSIO.fits_write_key_null(file, "COVNUL", "", status) == 0
+            AstroFITS.check(status)
+        end
+    finally
+        rm(tmp, force = true)
+    end
+end
+
     # Error messages.
     @test cfitsio_errmsg(CFITSIO.NUM_OVERFLOW) == "datatype conversion overflow"
     @test cfitsio_errmsg() isa Union{String,Nothing}

@@ -12,5 +12,6 @@ work.jl
 temp.jl
 test*.fits*
 *.pdf
+.vscode/
 /Manifest.toml
 /.Manifest-*.toml

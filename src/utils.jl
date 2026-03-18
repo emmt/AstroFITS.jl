@@ -116,7 +116,7 @@ function Base.isequal(::FitsLogic, s1::AbstractString, s2::AbstractString)
         i1 = nextind(s1, i1)
     end
     @inbounds while i2 ≤ last2
-        isspace(s1[i2]) || return false
+        isspace(s2[i2]) || return false
         i2 = nextind(s2, i2)
     end
     return true
