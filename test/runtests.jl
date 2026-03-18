@@ -543,6 +543,68 @@ openfits(tempfile, "r") do file
     @test_throws ArgumentError read(Array{UInt8, 0}, any0)
 end
 
+@testset "FITS image edge cases" begin
+    tmp, io = mktemp(; cleanup = false)
+    close(io)
+    try
+        img = reshape(Int16.(1:12), 3, 4)
+        with_nulls = Float32.(img)
+        with_nulls[2, 3] = NaN32
+        with_nulls[3, 4] = NaN32
+
+        openfits(tmp, "w!") do file
+            hdu = FitsImageHDU(file, img)
+            write(hdu, img)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            out = Vector{Int16}(undef, 4)
+            read!(out, hdu; last = 9)
+            @test out == vec(img)[6:9]
+
+            block = Matrix{Int16}(undef, 2, 2)
+            read!(block, hdu; first = (2, 2), last = (3, 3))
+            @test block == img[2:3, 2:3]
+        end
+
+        openfits(tmp, "rw") do file
+            hdu = file[1]
+            patch = reshape(Int16[101, 102], 2, 1)
+            write(hdu, patch; first = (2, 2), last = (3, 2))
+            tail = Int16[201, 202, 203]
+            write(hdu, tail; last = 5)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            got = read(hdu)
+            @test got[3:5] == Int16[201, 202, 203]
+
+            bad = Vector{Int16}(undef, 2)
+            @test_throws ErrorException read!(bad, hdu; first = (1, 1), last = 4)
+            @test_throws ErrorException write(hdu, Int16[1, 2]; first = (1, 1), last = 4)
+        end
+
+        openfits(tmp, "w!") do file
+            hdu = FitsImageHDU(file, with_nulls)
+            write(hdu, with_nulls; null = NaN32)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            vals = Array{Float32}(undef, size(with_nulls))
+            nulls = Array{Bool}(undef, size(with_nulls))
+            fill!(nulls, false)
+            anynull = Ref(false)
+            read!(vals, hdu; null = nulls, anynull = anynull)
+            @test anynull[]
+            @test nulls[2, 3]
+            @test nulls[3, 4]
+            @test vals[.!nulls] == with_nulls[.!nulls]
+        end
+    finally
+        rm(tmp, force = true)
+    end
+end
+
 end
 
 @testset "FITS Tables" begin
