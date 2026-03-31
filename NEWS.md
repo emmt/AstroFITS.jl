@@ -10,6 +10,8 @@ Versioning](https://semver.org).
 
 - Key can be symbolic in `Base.get(T, hdu, key[, def])`.
 
+- Non-existing symbol `write!` is no longer exported.
+
 ## Version 1.1.0 [2026-01-22]
 
 ### Added
