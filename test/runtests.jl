@@ -364,6 +364,25 @@ end
                 # FIXME:     @test card.value() === bak
                 # FIXME: end
                 delete!(hdu, key)
+
+                # Check comment update does not change undefined keyword type.
+                hdu["AGE"] = (missing, "initial comment")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                AstroFITS.update_key(hdu, "AGE", nothing, "updated comment")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                @test card.comment == "updated comment"
+
+                # Same behavior through public high-level API.
+                hdu["AGE"] = (nothing, "updated again")
+                card = hdu["AGE"]
+                @test card.type === FITS_UNDEFINED
+                @test card.value() === undef
+                @test card.comment == "updated again"
+                delete!(hdu, "AGE")
             end
             if cards isa AbstractVector{<:Pair{<:AbstractString,<:Any}}
                 # Test `get(T, hdu, key[, def])`.
@@ -493,6 +512,15 @@ end
     @test get(Int, hdr, "BITPIX") == 32
     @test get(Int, hdr, "NAXIS") == 1
     @test get(Int, hdr, "NAXIS1") == 0
+img = readfits(Array, tempfile)
+@test img isa Vector{Int32}
+@test img == Int32[]
+openfits(tempfile, "r") do file
+    any_img = AstroFITS._FitsAnyHDU(file, 1)
+    @test read(Array, any_img) == Int32[]
+    @test read(Array{Int32, 1}, any_img) == Int32[]
+end
+
     # Idem but by a different method.
     openfits(tempfile, "w!") do file
         hdu = @inferred FitsImageHDU(file)
@@ -502,6 +530,81 @@ end
     @test hdr isa FitsHeader
     @test get(Int, hdr, "BITPIX") == 8
     @test get(Int, hdr, "NAXIS") == 0
+@test readfits(Array, tempfile) == UInt8[]
+openfits(tempfile, "r") do file
+    hdu0 = file[1]
+    any0 = AstroFITS._FitsAnyHDU(file, 1)
+    @test read(hdu0) == UInt8[]
+    @test read(Array, hdu0) == UInt8[]
+    @test read(Array{UInt8}, hdu0) == UInt8[]
+    @test read(Array, any0) == UInt8[]
+    @test read(Array{UInt8}, any0) == UInt8[]
+    @test_throws ArgumentError read(Array{UInt8, 0}, hdu0)
+    @test_throws ArgumentError read(Array{UInt8, 0}, any0)
+end
+
+@testset "FITS image edge cases" begin
+    tmp, io = mktemp(; cleanup = false)
+    close(io)
+    try
+        img = reshape(Int16.(1:12), 3, 4)
+        with_nulls = Float32.(img)
+        with_nulls[2, 3] = NaN32
+        with_nulls[3, 4] = NaN32
+
+        openfits(tmp, "w!") do file
+            hdu = FitsImageHDU(file, img)
+            write(hdu, img)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            out = Vector{Int16}(undef, 4)
+            read!(out, hdu; last = 9)
+            @test out == vec(img)[6:9]
+
+            block = Matrix{Int16}(undef, 2, 2)
+            read!(block, hdu; first = (2, 2), last = (3, 3))
+            @test block == img[2:3, 2:3]
+        end
+
+        openfits(tmp, "rw") do file
+            hdu = file[1]
+            patch = reshape(Int16[101, 102], 2, 1)
+            write(hdu, patch; first = (2, 2), last = (3, 2))
+            tail = Int16[201, 202, 203]
+            write(hdu, tail; last = 5)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            got = read(hdu)
+            @test got[3:5] == Int16[201, 202, 203]
+
+            bad = Vector{Int16}(undef, 2)
+            @test_throws ErrorException read!(bad, hdu; first = (1, 1), last = 4)
+            @test_throws ErrorException write(hdu, Int16[1, 2]; first = (1, 1), last = 4)
+        end
+
+        openfits(tmp, "w!") do file
+            hdu = FitsImageHDU(file, with_nulls)
+            write(hdu, with_nulls; null = NaN32)
+        end
+        openfits(tmp, "r") do file
+            hdu = file[1]
+            vals = Array{Float32}(undef, size(with_nulls))
+            nulls = Array{Bool}(undef, size(with_nulls))
+            fill!(nulls, false)
+            anynull = Ref(false)
+            read!(vals, hdu; null = nulls, anynull = anynull)
+            @test anynull[]
+            @test nulls[2, 3]
+            @test nulls[3, 4]
+            @test vals[.!nulls] == with_nulls[.!nulls]
+        end
+    finally
+        rm(tmp, force = true)
+    end
+end
+
 end
 
 @testset "FITS Tables" begin
@@ -781,6 +884,50 @@ end
     @test x3["NAME"] == name
     @test x3["XY"] == xy
     @test x3["LABEL"] == label
+
+# Coverage for readfits(Array, ...) and read(..., FitsAnyHDU) methods.
+arr2 = readfits(Array, tempfile)
+@test arr2 isa Array{Float32, 3}
+@test arr2 == arr
+arr3 = readfits(Array{Float64, 3}, tempfile)
+@test arr3 isa Array{Float64, 3}
+@test arr3 == Float64.(arr)
+err = try
+    readfits(FitsHeader, tempfile, ext = "NO-SUCH-EXT")
+    nothing
+catch ex
+    ex
+end
+@test err isa ErrorException
+@test occursin("no FITS Header Data Unit named \"NO-SUCH-EXT\"", sprint(showerror, err))
+
+openfits(tempfile, "r") do file
+    any_img = AstroFITS._FitsAnyHDU(file, 1)
+    any_tbl = AstroFITS._FitsAnyHDU(file, 2)
+
+    data_any = read(Array, any_img)
+    @test data_any isa Array{Float32, 3}
+    @test data_any == arr
+
+    data_cast = read(Array{Float64}, any_img)
+    @test data_cast isa Array{Float64, 3}
+    @test data_cast == Float64.(arr)
+
+    data_exact = read(Array{Float32, 3}, any_img)
+    @test data_exact isa Array{Float32, 3}
+    @test data_exact == arr
+
+    @test_throws DimensionMismatch read(Array{Float32, 2}, any_img)
+
+    err = try
+        read(Array, any_tbl)
+        nothing
+    catch ex
+        ex
+    end
+    @test err isa ErrorException
+    @test occursin("HDU #2 is not an image extension", sprint(showerror, err))
+end
 
     # Test append!
     openfits(tempfile, "r") do src
