@@ -63,11 +63,97 @@ documentation for [`read!`](@ref read!(::Array,::FitsImageHDU))).
 read(hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
+read(hdu::FitsImageHDU{T, 0}; kwds...) where {T} =
+    Vector{T}(undef, 0)
+
 read(::Type{Array}, hdu::FitsImageHDU{T,N}; kwds...) where {T,N} =
     read(Array{T,N}, hdu; kwds...)
 
+read(::Type{Array}, hdu::FitsImageHDU{T, 0}; kwds...) where {T} =
+    Vector{T}(undef, 0)
+
+"""
+    _bitpix_to_julia_type(bitpix) -> Type
+
+Return the Julia number type corresponding to a FITS BITPIX value.
+"""
+function _bitpix_to_julia_type(bitpix::Int)
+    bitpix == type_to_bitpix(UInt8)   && return UInt8
+    bitpix == type_to_bitpix(Int8)    && return Int8
+    bitpix == type_to_bitpix(UInt16)  && return UInt16
+    bitpix == type_to_bitpix(Int16)   && return Int16
+    bitpix == type_to_bitpix(UInt32)  && return UInt32
+    bitpix == type_to_bitpix(Int32)   && return Int32
+    bitpix == type_to_bitpix(UInt64)  && return UInt64
+    bitpix == type_to_bitpix(Int64)   && return Int64
+    bitpix == type_to_bitpix(Float32) && return Float32
+    bitpix == type_to_bitpix(Float64) && return Float64
+    error("unsupported BITPIX value: ", bitpix)
+end
+
+function read(::Type{Array}, hdu::FitsAnyHDU; kwds...)
+    file = get_file_at(hdu)
+    exttype = Ref{Cint}(0)
+    check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
+    FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    T = _bitpix_to_julia_type(get_img_equivtype(file))
+    N = get_img_dim(file)
+    N == 0 && return Vector{T}(undef, 0)
+    return read(Array{T}, hdu; kwds...)::Array
+end
+
+function read(::Type{Array{T}}, hdu::FitsAnyHDU; kwds...) where {T<:Number}
+    file = get_file_at(hdu)
+    exttype = Ref{Cint}(0)
+    check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
+    FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+    N = get_img_dim(file)
+    N == 0 && return Vector{T}(undef, 0)
+    return _read_array_T_valN(Array{T}, hdu, Val(N); kwds...)::Array{T}
+end
+
+@generated function _read_array_T_valN(::Type{Array{T}}, hdu::FitsAnyHDU, ::Val{N}; kwds...) where {T<:Number,N}
+    :(read(Array{$T,$N}, hdu; kwds...))
+end
+
+function read(::Type{Array{T,N}}, hdu::FitsAnyHDU; kwds...) where {T<:Number,N}
+    file = get_file_at(hdu)
+    exttype = Ref{Cint}(0)
+    check(CFITSIO.fits_get_hdu_type(file, exttype, Ref{Cint}(0)))
+    FitsHDUType(exttype[]) == FITS_IMAGE_HDU || error("HDU #$(hdu.number) is not an image extension")
+
+    nd = get_img_dim(file)
+    nd == N || throw(DimensionMismatch("image extension has ndims=$nd not N=$N"))
+    N == 0 && throw(ArgumentError("NAXIS=0 image HDU has no data payload; use `read(Array, hdu)` or `read(Array{T}, hdu)`"))
+
+
+    dims_ref = Ref{NTuple{N,Clong}}()
+    check(CFITSIO.fits_get_img_size(file, N, dims_ref, Ref{Cint}(0)))
+    dims = dims_ref[]
+
+    len = 1
+    @inbounds for d in dims
+        len *= Int(d)
+    end
+
+    vec = Vector{T}(undef, len)
+    if len > 0
+        check(CFITSIO.fits_read_img(file, pixeltype_to_code(T), 1, len,
+                                    C_NULL, vec, Ref{Cint}(0), Ref{Cint}(0)))
+    end
+
+    outdims = ntuple(i -> Int(dims[i]), N)
+    return reshape(vec, outdims)
+end
+
 read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any,N}; kwds...) where {T<:Number,N} =
     read(Array{T,N}, hdu; kwds...)
+
+read(::Type{Array{T}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    Vector{T}(undef, 0)
+
+read(::Type{Array{T, 0}}, hdu::FitsImageHDU{<:Any, 0}; kwds...) where {T <: Number} =
+    throw(ArgumentError("NAXIS=0 image HDU has no data; use `read(Array, hdu)` or `read(Array{T}, hdu)`"))
 
 function read(::Type{Array{T,N}}, hdu::FitsImageHDU{<:Any,N};
               null::Union{DenseArray{Bool,N},Ref{T},Nothing} = nothing,
@@ -174,7 +260,7 @@ function read!(arr::DenseArray{T,L},
         # because it is not possible to guess one given the other and the size of the array
         # to read as it may have fewer dimensions than the image.
         if step === nothing
-            ipix = NTuple(i -> one(Clong), Val(N))::NTuple{N,Clong}
+            ipix = ntuple(i -> one(Clong), Val(N))::NTuple{N,Clong}
         else
             ipix = as(NTuple{N,Clong}, step)
         end
@@ -202,7 +288,7 @@ function read!(arr::DenseArray{T,L},
                     "image extension and output array have differente sizes"))
                 fpix = 1
             else first === nothing
-                fpix = Int(fpix, len + 1 - last)::Int
+                fpix = Int(last + 1 - len)::Int
             end
         else
             last === nothing || last + 1 - first == len || throw(DimensionMismatch(
@@ -213,11 +299,11 @@ function read!(arr::DenseArray{T,L},
         if null isa DenseArray{Bool,L}
             axes(null) == axes(arr) || error("incompatible array axes")
             if len > 0
-                # NOTE: `GC.@protect null` is not needed here.
-                _null = logical_pointer(null)
-                check(CFITSIO.fits_read_imgnull(
-                    hdu, type, fpix, len, _null, arr, anynul, Ref{Cint}(0)))
-                fix_logicals!(null)
+                GC.@preserve null begin
+                    _null = Cstring(Base.unsafe_convert(Ptr{Cchar}, pointer(null)))
+                    check(CFITSIO.fits_read_imgnull(
+                        hdu, type, fpix, len, arr, _null, anynul, Ref{Cint}(0)))
+                end
             end
         elseif len > 0
             _null = (null === nothing ? C_NULL : null)
@@ -420,7 +506,7 @@ function write(hdu::FitsImageHDU{<:Any,N},
                     "image extension and input array have different sizes"))
                 fpix = 1
             else first === nothing
-                fpix = Int(fpix, len + 1 - last)::Int
+                fpix = Int(last + 1 - len)::Int
             end
         else
             last === nothing || last + 1 - first == len || throw(DimensionMismatch(

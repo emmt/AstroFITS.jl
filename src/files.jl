@@ -128,8 +128,16 @@ for the possible keywords `kwds...`.
 """
 function readfits(::Type{FitsHeader}, filename::AbstractString;
                   ext::Union{AbstractString,Integer} = 1, kwds...)
-    FitsFile(filename, "r"; kwds...) do file
-        FitsHeader(file[ext])::FitsHeader
+    file = FitsFile(filename, "r"; kwds...)
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        return FitsHeader(_FitsAnyHDU(file, exti))::FitsHeader
+    finally
+        close(file; check=pass)
     end
 end
 
@@ -161,6 +169,25 @@ function readfits(filename::AbstractString, args...; extended::Bool = false,
                   ext::Union{AbstractString,Integer} = 1, kwds...)
     FitsFile(filename, "r"; extended) do file
         read(file[ext], args...; kwds...)
+    end
+end
+
+function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
+                  ext::Union{AbstractString,Integer} = 1, kwds...) where {R<:Array}
+    file = if extended
+        FitsFile(filename, "r"; extended=true)
+    else
+        FitsFile(filename, "r")
+    end
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        return read(R, _FitsAnyHDU(file, exti), args...; kwds...)::R
+    finally
+        close(file; check=pass)
     end
 end
 
