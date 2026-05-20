@@ -223,7 +223,7 @@ function read!(arr::DenseArray{T,L},
             axes(null) == axes(arr) || error("incompatible array axes")
             if len > 0
                 GC.@preserve null begin
-                    _null = Cstring(Base.unsafe_convert(Ptr{Cchar}, pointer(null)))
+                    _null = Base.unsafe_convert(Ptr{Cvoid}, null)
                     check(CFITSIO.fits_read_imgnull(
                         hdu, type, fpix, len, arr, _null, anynul, Ref{Cint}(0)))
                 end
