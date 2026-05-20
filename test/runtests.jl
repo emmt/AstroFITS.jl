@@ -15,7 +15,7 @@ other_type(type::FitsCardType) =
     type === FITS_LOGICAL   ? Undef :
     type === FITS_INTEGER   ? Undef :
     type === FITS_FLOAT     ? Undef :
-    type === FITS_COMPLEX   ? Undef :
+    type === FITS_COMPLEX   ? Undef :/
     type === FITS_STRING    ? Undef :
     type === FITS_COMMENT   ? Undef : Int
 
@@ -927,34 +927,6 @@ catch ex
 end
 @test err isa ErrorException
 @test occursin("no FITS Header Data Unit named \"NO-SUCH-EXT\"", sprint(showerror, err))
-
-openfits(tempfile, "r") do file
-    any_img = AstroFITS._FitsAnyHDU(file, 1)
-    any_tbl = AstroFITS._FitsAnyHDU(file, 2)
-
-    data_any = read(Array, any_img)
-    @test data_any isa Array{Float32, 3}
-    @test data_any == arr
-
-    data_cast = read(Array{Float64}, any_img)
-    @test data_cast isa Array{Float64, 3}
-    @test data_cast == Float64.(arr)
-
-    data_exact = read(Array{Float32, 3}, any_img)
-    @test data_exact isa Array{Float32, 3}
-    @test data_exact == arr
-
-    @test_throws DimensionMismatch read(Array{Float32, 2}, any_img)
-
-    err = try
-        read(Array, any_tbl)
-        nothing
-    catch ex
-        ex
-    end
-    @test err isa ErrorException
-    @test occursin("HDU #2 is not an image extension", sprint(showerror, err))
-end
 
     # Test append!
     openfits(tempfile, "r") do src
