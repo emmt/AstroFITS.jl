@@ -174,11 +174,7 @@ end
 
 function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
                   ext::Union{AbstractString,Integer} = 1, kwds...) where {R<:Array}
-    file = if extended
-        FitsFile(filename, "r"; extended=true)
-    else
-        FitsFile(filename, "r")
-    end
+    file = FitsFile(filename, "r"; extended=extended)
     try
         exti = ext isa Integer ? Int(ext) : begin
             i = findfirst(ext, file)
