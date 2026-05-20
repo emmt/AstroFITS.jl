@@ -15,7 +15,7 @@ other_type(type::FitsCardType) =
     type === FITS_LOGICAL   ? Undef :
     type === FITS_INTEGER   ? Undef :
     type === FITS_FLOAT     ? Undef :
-    type === FITS_COMPLEX   ? Undef :/
+    type === FITS_COMPLEX   ? Undef :
     type === FITS_STRING    ? Undef :
     type === FITS_COMMENT   ? Undef : Int
 
