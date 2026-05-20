@@ -137,7 +137,7 @@ function readfits(::Type{FitsHeader}, filename::AbstractString;
         end
         return FitsHeader(_FitsAnyHDU(file, exti))::FitsHeader
     finally
-        close(file; check=pass)
+        close(file)
     end
 end
 
@@ -187,7 +187,7 @@ function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool =
         end
         return read(R, _FitsAnyHDU(file, exti), args...; kwds...)::R
     finally
-        close(file; check=pass)
+        close(file)
     end
 end
 
