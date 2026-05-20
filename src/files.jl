@@ -172,20 +172,6 @@ function readfits(filename::AbstractString, args...; extended::Bool = false,
     end
 end
 
-function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
-                  ext::Union{AbstractString,Integer} = 1, kwds...) where {R<:Array}
-    file = FitsFile(filename, "r"; extended=extended)
-    try
-        exti = ext isa Integer ? Int(ext) : begin
-            i = findfirst(ext, file)
-            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
-            Int(i)
-        end
-        return read(R, _FitsAnyHDU(file, exti), args...; kwds...)::R
-    finally
-        close(file)
-    end
-end
 
 function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
                   ext::Union{AbstractString,Integer} = 1, kwds...)  where {R}
