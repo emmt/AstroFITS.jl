@@ -870,21 +870,21 @@ end
     @test x3["XY"] == xy
     @test x3["LABEL"] == label
 
-# Coverage for readfits(Array, ...) and read(..., FitsAnyHDU) methods.
-arr2 = readfits(Array, tempfile)
-@test arr2 isa Array{Float32, 3}
-@test arr2 == arr
-arr3 = readfits(Array{Float64, 3}, tempfile)
-@test arr3 isa Array{Float64, 3}
-@test arr3 == Float64.(arr)
-err = try
-    readfits(FitsHeader, tempfile, ext = "NO-SUCH-EXT")
-    nothing
-catch ex
-    ex
-end
-@test err isa ErrorException
-@test occursin("no FITS Header Data Unit named \"NO-SUCH-EXT\"", sprint(showerror, err))
+    # Coverage for readfits(Array, ...) methods.
+    arr2 = readfits(Array, tempfile)
+    @test arr2 isa Array{Float32, 3}
+    @test arr2 == arr
+    arr3 = readfits(Array{Float64, 3}, tempfile)
+    @test arr3 isa Array{Float64, 3}
+    @test arr3 == Float64.(arr)
+    err = try
+        readfits(FitsHeader, tempfile, ext = "NO-SUCH-EXT")
+        nothing
+    catch ex
+        ex
+    end
+    @test err isa ErrorException
+    @test occursin("no FITS Header Data Unit named \"NO-SUCH-EXT\"", sprint(showerror, err))
 
     # Test append!
     openfits(tempfile, "r") do src
