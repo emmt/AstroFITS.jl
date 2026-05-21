@@ -782,6 +782,7 @@ function write(hdu::FitsTableHDU,
                case::Bool = false,
                null::Union{Number,AbstractString,Nothing} = nothing,
                first::Integer = hdu.first_row)
+    iswritable(get_file_at(hdu)) || error("FITS file is not writable")
     # Get column number.
     col = pair.first
     num = get_colnum(hdu, col; case)
@@ -898,6 +899,7 @@ vector of pairs, or a tuple of pairs.
 
 """
 function write(file::FitsFile, header::OptionalHeader, cols::TableData; kwds...)
+    iswritable(file) || error("FITS file is not writable")
     # Create a new FITS Table HDU with column definitions.
     hdu = create_table(file, cols; kwds...)
 
