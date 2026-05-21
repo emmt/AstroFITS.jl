@@ -128,8 +128,16 @@ for the possible keywords `kwds...`.
 """
 function readfits(::Type{FitsHeader}, filename::AbstractString;
                   ext::Union{AbstractString,Integer} = 1, kwds...)
-    FitsFile(filename, "r"; kwds...) do file
-        FitsHeader(file[ext])::FitsHeader
+    file = FitsFile(filename, "r"; kwds...)
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        return FitsHeader(file[exti])::FitsHeader
+    finally
+        close(file)
     end
 end
 
@@ -159,15 +167,82 @@ rows.
 """
 function readfits(filename::AbstractString, args...; extended::Bool = false,
                   ext::Union{AbstractString,Integer} = 1, kwds...)
-    FitsFile(filename, "r"; extended) do file
-        read(file[ext], args...; kwds...)
+    file = FitsFile(filename, "r"; extended)
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        hdu = file[exti]
+        if hdu isa FitsImageHDU
+            return read(hdu, args...; kwds...)
+        elseif hdu isa FitsTableHDU
+            return read(hdu, args...; kwds...)
+        else
+            error("no method to read from HDU of type `$(typeof(hdu))`")
+        end
+    finally
+        close(file)
     end
 end
 
 function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
                   ext::Union{AbstractString,Integer} = 1, kwds...)  where {R}
-    FitsFile(filename, "r"; extended) do file
-        read(R, file[ext], args...; kwds...)
+    file = FitsFile(filename, "r"; extended)
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        hdu = file[exti]
+        if hdu isa FitsImageHDU
+            return read(R, hdu, args...; kwds...)
+        elseif hdu isa FitsTableHDU
+            return read(R, hdu, args...; kwds...)
+        else
+            error("no method to read as `$R` from HDU of type `$(typeof(hdu))`")
+        end
+    finally
+        close(file)
+    end
+end
+
+function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool = false,
+                  ext::Union{AbstractString,Integer} = 1, kwds...) where {T,N,R<:Array{T,N}}
+    file = FitsFile(filename, "r"; extended)
+    try
+        exti = ext isa Integer ? Int(ext) : begin
+            i = findfirst(ext, file)
+            i === nothing && error("no FITS Header Data Unit named \"$ext\"")
+            Int(i)
+        end
+        hdu = file[exti]
+        if hdu isa FitsImageHDU
+            ihdu = hdu::FitsImageHDU{<:Any,N}
+            if isempty(args)
+                file2 = get_file_at(ihdu)
+                nd = get_img_dim(file2)
+                nd == N || throw(DimensionMismatch("image extension has ndims=$nd not N=$N"))
+                dims_ref = Ref{NTuple{N,Clong}}()
+                check(CFITSIO.fits_get_img_size(file2, N, dims_ref, Ref{Cint}(0)))
+                dims = dims_ref[]
+                arr = Array{T,N}(undef, dims)
+                len = length(arr)
+                anynul = Ref{Cint}(0)
+                check(CFITSIO.fits_read_img(file2, pixeltype_to_code(T), 1, len,
+                                            C_NULL, arr, anynul, Ref{Cint}(0)))
+                return arr::R
+            else
+                arr = Array{T,N}(undef, get_img_size(ihdu))
+                return read!(arr, ihdu, args...; kwds...)::R
+            end
+        else
+            error("no method to read as `$R` from HDU of type `$(typeof(hdu))`")
+        end
+    finally
+        close(file)
     end
 end
 
@@ -490,11 +565,76 @@ function Base.getindex(file::FitsFile, i::Integer)
         check(CFITSIO.fits_get_img_equivtype(file, bitpix, status))
         ndims = Ref{Cint}()
         check(CFITSIO.fits_get_img_dim(file, ndims, status))
-        N = as(Int, ndims[])
-        T = type_from_bitpix(bitpix[])
-        return _FitsImageHDU(T, Dims{N}, file, i)
+        return _fits_image_hdu_from_bitpix_ndims(bitpix[], as(Int, ndims[]), file, i)
     else
         return _FitsAnyHDU(file, i)
+    end
+end
+
+@inline function _fits_image_hdu_from_bitpix_ndims(bitpix::Cint, ndims::Int,
+                                                   file::FitsFile, i::Integer)
+    b = Int(bitpix)
+    if b == Int(CFITSIO.BYTE_IMG)
+        return _fits_image_hdu_from_ndims(UInt8, ndims, file, i)
+    elseif b == Int(CFITSIO.SBYTE_IMG)
+        return _fits_image_hdu_from_ndims(Int8, ndims, file, i)
+    elseif b == Int(CFITSIO.USHORT_IMG)
+        return _fits_image_hdu_from_ndims(UInt16, ndims, file, i)
+    elseif b == Int(CFITSIO.SHORT_IMG)
+        return _fits_image_hdu_from_ndims(Int16, ndims, file, i)
+    elseif b == Int(CFITSIO.ULONG_IMG)
+        return _fits_image_hdu_from_ndims(UInt32, ndims, file, i)
+    elseif b == Int(CFITSIO.LONG_IMG)
+        return _fits_image_hdu_from_ndims(Int32, ndims, file, i)
+    elseif b == Int(CFITSIO.ULONGLONG_IMG)
+        return _fits_image_hdu_from_ndims(UInt64, ndims, file, i)
+    elseif b == Int(CFITSIO.LONGLONG_IMG)
+        return _fits_image_hdu_from_ndims(Int64, ndims, file, i)
+    elseif b == Int(CFITSIO.FLOAT_IMG)
+        return _fits_image_hdu_from_ndims(Float32, ndims, file, i)
+    elseif b == Int(CFITSIO.DOUBLE_IMG)
+        return _fits_image_hdu_from_ndims(Float64, ndims, file, i)
+    else
+        bad_argument("invalid BITPIX value")
+    end
+end
+
+@inline function _fits_image_hdu_from_ndims(::Type{T}, ndims::Int,
+                                            file::FitsFile, i::Integer) where {T}
+    if ndims == 0
+        return _FitsImageHDU(T, Dims{0}, file, i)
+    elseif ndims == 1
+        return _FitsImageHDU(T, Dims{1}, file, i)
+    elseif ndims == 2
+        return _FitsImageHDU(T, Dims{2}, file, i)
+    elseif ndims == 3
+        return _FitsImageHDU(T, Dims{3}, file, i)
+    elseif ndims == 4
+        return _FitsImageHDU(T, Dims{4}, file, i)
+    elseif ndims == 5
+        return _FitsImageHDU(T, Dims{5}, file, i)
+    elseif ndims == 6
+        return _FitsImageHDU(T, Dims{6}, file, i)
+    elseif ndims == 7
+        return _FitsImageHDU(T, Dims{7}, file, i)
+    elseif ndims == 8
+        return _FitsImageHDU(T, Dims{8}, file, i)
+    elseif ndims == 9
+        return _FitsImageHDU(T, Dims{9}, file, i)
+    elseif ndims == 10
+        return _FitsImageHDU(T, Dims{10}, file, i)
+    elseif ndims == 11
+        return _FitsImageHDU(T, Dims{11}, file, i)
+    elseif ndims == 12
+        return _FitsImageHDU(T, Dims{12}, file, i)
+    elseif ndims == 13
+        return _FitsImageHDU(T, Dims{13}, file, i)
+    elseif ndims == 14
+        return _FitsImageHDU(T, Dims{14}, file, i)
+    elseif ndims == 15
+        return _FitsImageHDU(T, Dims{15}, file, i)
+    else
+        bad_argument("unsupported image dimensionality: NAXIS=$ndims")
     end
 end
 
