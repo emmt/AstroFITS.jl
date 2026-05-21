@@ -870,6 +870,30 @@ end
         end
     end
 
+    @testset "write guards for read-only and closed files" begin
+        local path, io = mktemp(; cleanup = false)
+        close(io)
+        try
+            writefits!(path, (), [0 0; 1 1])
+
+            # Regressions for write attempts through a read-only file.
+            openfits(path, "r") do f
+                hdu = f[1]
+                @test_throws Exception write(f, (), [2 2; 3 3])
+                @test_throws Exception write(hdu, [2 2; 3 3])
+            end
+
+            # Regressions for write attempts after explicit close.
+            f = openfits(path, "rw")
+            hdu = f[1]
+            close(f)
+            @test_throws Exception write(f, (), [4 4; 5 5])
+            @test_throws Exception write(hdu, [4 4; 5 5])
+        finally
+            rm(path, force = true)
+        end
+    end
+
     # Check `overwrite` keyword and similar.
     @test_throws FitsError openfits(tempfile, "w")
 
