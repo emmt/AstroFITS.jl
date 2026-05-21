@@ -1,3 +1,17 @@
+"""
+    AstroFITS
+
+Julia package for reading and writing FITS (Flexible Image Transport System) files via the
+CFITSIO library. It provides:
+
+- [`FitsFile`](@ref) for opening, creating, and iterating over FITS files.
+- [`FitsImageHDU`](@ref) and [`FitsTableHDU`](@ref) for image and table extensions.
+- [`readfits`](@ref), [`readfits!`](@ref), [`writefits`](@ref), [`writefits!`](@ref) for
+  high-level I/O.
+- Re-exports of [`FitsCard`](@ref), [`FitsKey`](@ref), [`FitsHeader`](@ref), and related
+  types and constants from the `FITSHeaders` package.
+
+"""
 module AstroFITS
 
 export

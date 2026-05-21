@@ -678,8 +678,10 @@ end
 
 """
     hdu = FitsTableHDU(file, cols...)
+    hdu = FitsTableHDU(file, cols)
 
-Start a new FITS Table extension in FITS file `file` with columns defined by `cols...`. Each
+Start a new FITS Table extension in FITS file `file` with columns defined by `cols...` or by
+a collection `cols` (vector, tuple, or named tuple). Each
 column definition is a pair `name => format` where `name` is the column name while `format`
 specifies the type of the column values and, optionally, their units and the size of the
 column cells. The following definitions are possible:
