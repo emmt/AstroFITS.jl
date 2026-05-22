@@ -506,6 +506,14 @@ Base.firstindex(::FitsHDU) = 1
 Base.lastindex(hdu::FitsHDU) = length(hdu)
 Base.keys(hdu::FitsHDU) = Base.OneTo(length(hdu))
 
+# Yield number of existing and remaining undefined keys in the current HDU.
+function get_hdrspace(hdu::FitsHDU)
+    existing = Ref{Cint}()
+    remaining = Ref{Cint}()
+    check(CFITSIO.fits_get_hdrspace(hdu, existing, remaining, Ref{Cint}(0)))
+    return (Int(existing[]), Int(remaining[]))
+end
+
 """
     AstroFITS.write_comment(dst, str) -> dst
 
