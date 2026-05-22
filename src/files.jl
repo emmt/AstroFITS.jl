@@ -571,70 +571,40 @@ function Base.getindex(file::FitsFile, i::Integer)
     end
 end
 
-@inline function _fits_image_hdu_from_bitpix_ndims(bitpix::Cint, ndims::Int,
-                                                   file::FitsFile, i::Integer)
-    b = Int(bitpix)
-    if b == Int(CFITSIO.BYTE_IMG)
-        return _fits_image_hdu_from_ndims(UInt8, ndims, file, i)
-    elseif b == Int(CFITSIO.SBYTE_IMG)
-        return _fits_image_hdu_from_ndims(Int8, ndims, file, i)
-    elseif b == Int(CFITSIO.USHORT_IMG)
-        return _fits_image_hdu_from_ndims(UInt16, ndims, file, i)
-    elseif b == Int(CFITSIO.SHORT_IMG)
-        return _fits_image_hdu_from_ndims(Int16, ndims, file, i)
-    elseif b == Int(CFITSIO.ULONG_IMG)
-        return _fits_image_hdu_from_ndims(UInt32, ndims, file, i)
-    elseif b == Int(CFITSIO.LONG_IMG)
-        return _fits_image_hdu_from_ndims(Int32, ndims, file, i)
-    elseif b == Int(CFITSIO.ULONGLONG_IMG)
-        return _fits_image_hdu_from_ndims(UInt64, ndims, file, i)
-    elseif b == Int(CFITSIO.LONGLONG_IMG)
-        return _fits_image_hdu_from_ndims(Int64, ndims, file, i)
-    elseif b == Int(CFITSIO.FLOAT_IMG)
-        return _fits_image_hdu_from_ndims(Float32, ndims, file, i)
-    elseif b == Int(CFITSIO.DOUBLE_IMG)
-        return _fits_image_hdu_from_ndims(Float64, ndims, file, i)
-    else
-        bad_argument("invalid BITPIX value")
+const _BITPIX_TO_IMAGE_ELTYPE = (
+    (Int(CFITSIO.BYTE_IMG), UInt8),
+    (Int(CFITSIO.SBYTE_IMG), Int8),
+    (Int(CFITSIO.USHORT_IMG), UInt16),
+    (Int(CFITSIO.SHORT_IMG), Int16),
+    (Int(CFITSIO.ULONG_IMG), UInt32),
+    (Int(CFITSIO.LONG_IMG), Int32),
+    (Int(CFITSIO.ULONGLONG_IMG), UInt64),
+    (Int(CFITSIO.LONGLONG_IMG), Int64),
+    (Int(CFITSIO.FLOAT_IMG), Float32),
+    (Int(CFITSIO.DOUBLE_IMG), Float64),
+)
+
+const _MAX_FITS_IMAGE_NAXIS = 15
+
+let branches = :(bad_argument("invalid BITPIX value"))
+    for (bitpix_code, T) in reverse(_BITPIX_TO_IMAGE_ELTYPE)
+        branches = :(Int(bitpix) == $bitpix_code ?
+                     _fits_image_hdu_from_ndims($T, ndims, file, i) :
+                     $branches)
+    end
+    @eval @inline function _fits_image_hdu_from_bitpix_ndims(bitpix::Cint, ndims::Int,
+                                                              file::FitsFile, i::Integer)
+        $branches
     end
 end
 
-@inline function _fits_image_hdu_from_ndims(::Type{T}, ndims::Int,
-                                            file::FitsFile, i::Integer) where {T}
-    if ndims == 0
-        return _FitsImageHDU(T, Dims{0}, file, i)
-    elseif ndims == 1
-        return _FitsImageHDU(T, Dims{1}, file, i)
-    elseif ndims == 2
-        return _FitsImageHDU(T, Dims{2}, file, i)
-    elseif ndims == 3
-        return _FitsImageHDU(T, Dims{3}, file, i)
-    elseif ndims == 4
-        return _FitsImageHDU(T, Dims{4}, file, i)
-    elseif ndims == 5
-        return _FitsImageHDU(T, Dims{5}, file, i)
-    elseif ndims == 6
-        return _FitsImageHDU(T, Dims{6}, file, i)
-    elseif ndims == 7
-        return _FitsImageHDU(T, Dims{7}, file, i)
-    elseif ndims == 8
-        return _FitsImageHDU(T, Dims{8}, file, i)
-    elseif ndims == 9
-        return _FitsImageHDU(T, Dims{9}, file, i)
-    elseif ndims == 10
-        return _FitsImageHDU(T, Dims{10}, file, i)
-    elseif ndims == 11
-        return _FitsImageHDU(T, Dims{11}, file, i)
-    elseif ndims == 12
-        return _FitsImageHDU(T, Dims{12}, file, i)
-    elseif ndims == 13
-        return _FitsImageHDU(T, Dims{13}, file, i)
-    elseif ndims == 14
-        return _FitsImageHDU(T, Dims{14}, file, i)
-    elseif ndims == 15
-        return _FitsImageHDU(T, Dims{15}, file, i)
-    else
-        bad_argument("unsupported image dimensionality: NAXIS=$ndims")
+let branches = :(bad_argument("unsupported image dimensionality: NAXIS=$ndims"))
+    for N in reverse(0:_MAX_FITS_IMAGE_NAXIS)
+        branches = :(ndims == $N ? _FitsImageHDU(T, Dims{$N}, file, i) : $branches)
+    end
+    @eval @inline function _fits_image_hdu_from_ndims(::Type{T}, ndims::Int,
+                                                       file::FitsFile, i::Integer) where {T}
+        $branches
     end
 end
 
