@@ -359,12 +359,14 @@ is empty.
 """
 function write(file::FitsFile, hdr::OptionalHeader,
                arr::AbstractArray{T,N}) where {T<:Number,N}
+    iswritable(file) || error("FITS file is not writable")
     write(merge!(FitsImageHDU{T,N}(file, size(arr)), hdr), arr)
     return file # returns the file not the HDU
 end
 
 # Write a new HDU with no data.
 function write(file::FitsFile, hdr::OptionalHeader, ::Nothing)
+    iswritable(file) || error("FITS file is not writable")
     merge!(FitsImageHDU(file), hdr)
     return file # returns the file not the HDU
 end
@@ -402,6 +404,8 @@ function write(hdu::FitsImageHDU{<:Any,N},
                first::Union{Integer,NTuple{N,Integer},Nothing} = nothing,
                last::Union{Integer,NTuple{N,Integer},Nothing} = nothing,
                null::Union{Number,Nothing} = nothing) where {T<:Number,L,N}
+    iswritable(get_file_at(hdu)) || error("FITS file is not writable")
+
     type = pixeltype_to_code(arr) # clash if unsupported pixel type
     dims = get_img_size(hdu)
     len = length(arr)

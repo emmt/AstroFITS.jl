@@ -50,7 +50,6 @@ export
     readfits,
     readfits!,
     openfits,
-    write!,
     writefits,
     writefits!
 
