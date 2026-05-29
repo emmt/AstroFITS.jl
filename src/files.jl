@@ -197,9 +197,7 @@ function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool =
             Int(i)
         end
         hdu = file[exti]
-        if hdu isa FitsImageHDU
-            return read(R, hdu, args...; kwds...)
-        elseif hdu isa FitsTableHDU
+        if hdu isa FitsImageHDU || hdu isa FitsTableHDU
             return read(R, hdu, args...; kwds...)
         else
             error("no method to read as `$R` from HDU of type `$(typeof(hdu))`")
@@ -220,23 +218,22 @@ function readfits(::Type{R}, filename::AbstractString, args...; extended::Bool =
         end
         hdu = file[exti]
         if hdu isa FitsImageHDU
-            ihdu = hdu::FitsImageHDU{<:Any,N}
             if isempty(args)
-                file2 = get_file_at(ihdu)
-                nd = get_img_dim(file2)
+                file = get_file_at(hdu)
+                nd = get_img_dim(file)
                 nd == N || throw(DimensionMismatch("image extension has ndims=$nd not N=$N"))
                 dims_ref = Ref{NTuple{N,Clong}}()
-                check(CFITSIO.fits_get_img_size(file2, N, dims_ref, Ref{Cint}(0)))
+                check(CFITSIO.fits_get_img_size(file, N, dims_ref, Ref{Cint}(0)))
                 dims = dims_ref[]
                 arr = Array{T,N}(undef, dims)
                 len = length(arr)
                 anynul = Ref{Cint}(0)
-                check(CFITSIO.fits_read_img(file2, pixeltype_to_code(T), 1, len,
+                check(CFITSIO.fits_read_img(file, pixeltype_to_code(T), 1, len,
                                             C_NULL, arr, anynul, Ref{Cint}(0)))
                 return arr::R
             else
-                arr = Array{T,N}(undef, get_img_size(ihdu))
-                return read!(arr, ihdu, args...; kwds...)::R
+                arr = Array{T,N}(undef, get_img_size(hdu))
+                return read!(arr, hdu, args...; kwds...)::R
             end
         else
             error("no method to read as `$R` from HDU of type `$(typeof(hdu))`")
