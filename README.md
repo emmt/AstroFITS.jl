@@ -4,7 +4,7 @@
 [![License][license-img]][license-url]
 [![Build Status](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/emmt/AstroFITS.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Build status](https://ci.appveyor.com/api/projects/status/v9gpf7j3x8d29fo4?svg=true)](https://ci.appveyor.com/project/emmt/astrofits-jl)
-[![Coverage](https://codecov.io/gh/emmt/AstroFITS/graph/badge.svg?token=y03sNamyis)](https://codecov.io/gh/emmt/AstroFITS)
+[![Coverage](https://codecov.io/gh/emmt/AstroFITS.jl/graph/badge.svg?token=y03sNamyis)](https://codecov.io/gh/emmt/AstroFITS.jl)
 [![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 `AstroFITS` is a [Julia](https://julialang.org/) package designed to make it easier to read
@@ -90,7 +90,7 @@ FITS file must be a *Fits Image* (possibly empty), not a *FITS Table*.
 To read the headers of the 1st and 2nd HDU of the file:
 
 ```julia
-hdr1 = readfits(FitsHeader, filename) 
+hdr1 = readfits(FitsHeader, filename)
 hdr2 = readfits(FitsHeader, filename, ext=2)
 ```
 
