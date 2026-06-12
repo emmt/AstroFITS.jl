@@ -6,11 +6,20 @@ Versioning](https://semver.org).
 
 ## Unreleased
 
+### Added
+
+- When reading a FITS image with `NAXIS=0`, an empty vector is returned.
+
 ### Fixed
 
 - Key can be symbolic in `Base.get(T, hdu, key[, def])`.
 
 - Non-existing symbol `write!` is no longer exported.
+
+- Add write guards for read-only and closed FITS files.
+
+- Fix updating the comment of a FITS header keyword with an undefined value.
+
 
 ## Version 1.1.0 [2026-01-22]
 
