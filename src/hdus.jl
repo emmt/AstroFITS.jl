@@ -257,9 +257,7 @@ end
 Read all records of the header of `hdu` and returns an efficient object representing them.
 
 """
-function FITSHeaders.FitsHeader(hdu::FitsHDU)
-    file = get_file_at(hdu)
-    len = length(hdu)
+@inline function _fitsheader_from_file_len(file::FitsFile, len::Int)
     hdr = sizehint!(FitsHeader(), len)
     buf = Memory{UInt8}(undef, CFITSIO.FLEN_CARD)
     status = Ref{Cint}(0)
@@ -272,6 +270,9 @@ function FITSHeaders.FitsHeader(hdu::FitsHDU)
     end
     return hdr
 end
+
+@inline FITSHeaders.FitsHeader(hdu::Union{FitsImageHDU,FitsTableHDU,FitsAnyHDU}) =
+    _fitsheader_from_file_len(get_file_at(hdu), length(hdu))
 
 """
     reset(hdu::FitsHDU) -> hdu
@@ -487,10 +488,15 @@ function set_key(hdu::FitsHDU, key::String, val, com::String; append::Bool = fal
 end
 
 # Implement abstract vector API for HDUs.
-Base.length(hdu::FitsHDU) = get_hdrspace(hdu)[1]
+@inline function Base.length(hdu::FitsHDU)
+    existing = Ref{Cint}()
+    remaining = Ref{Cint}()
+    check(CFITSIO.fits_get_hdrspace(get_file_at(hdu), existing, remaining, Ref{Cint}(0)))
+    return Int(existing[])
+end
 Base.size(hdu::FitsHDU) = (length(hdu),)
 Base.axes(hdu::FitsHDU) = (keys(hdu),)
-Base.firstindex(hdu::FitsHDU) = 1
+Base.firstindex(::FitsHDU) = 1
 Base.lastindex(hdu::FitsHDU) = length(hdu)
 Base.keys(hdu::FitsHDU) = Base.OneTo(length(hdu))
 
