@@ -271,13 +271,7 @@ Read all records of the header of `hdu` and returns an efficient object represen
     return hdr
 end
 
-@inline FITSHeaders.FitsHeader(hdu::FitsImageHDU) =
-    _fitsheader_from_file_len(get_file_at(hdu), length(hdu))
-
-@inline FITSHeaders.FitsHeader(hdu::FitsTableHDU) =
-    _fitsheader_from_file_len(get_file_at(hdu), length(hdu))
-
-@inline FITSHeaders.FitsHeader(hdu::FitsAnyHDU) =
+@inline FITSHeaders.FitsHeader(hdu::Union{FitsImageHDU,FitsTableHDU,FitsAnyHDU}) =
     _fitsheader_from_file_len(get_file_at(hdu), length(hdu))
 
 """
