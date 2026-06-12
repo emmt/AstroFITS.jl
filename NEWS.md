@@ -4,11 +4,15 @@ This page describes the most important changes in `AstroFITS`. The format is bas
 Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic
 Versioning](https://semver.org).
 
-## Unreleased
+## Version 1.2.0 [2026-06-12]
 
 ### Added
 
 - When reading a FITS image with `NAXIS=0`, an empty vector is returned.
+
+- Can use `TypeUtils` version 2.
+
+- Can use `FITSHeaders` version 0.5.
 
 ### Fixed
 
